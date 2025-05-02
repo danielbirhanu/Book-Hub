@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser"
 import path from "path"
 
 import connectdb from "./config/db.js"
+import userRoutes from "./routes/userRoutes.js"
 
 dotenv.config()
 connectdb()
