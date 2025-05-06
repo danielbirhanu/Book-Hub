@@ -5,10 +5,16 @@ import App from "./App.jsx";
 import store from "./redux/store.js";
 import { Provider } from "react-redux";
 import { Route, RouterProvider, createRoutesFromElements } from "react-router";
-import { createbrowserRouter } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 
-const router = createbrowserRouter(
-  createRoutesFromElements(<Route path="/" element={<App />}></Route>)
+import Home from "./pages/Home.jsx";
+
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route path="/" element={<App />}>
+      <Route index={true} path="/" element={<Home />} />
+    </Route>
+  )
 );
 
 createRoot(document.getElementById("root")).render(
