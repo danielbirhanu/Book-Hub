@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+body {
+  background: #0d1321;
+  font-family: "Inter", sans-serif;
+  /* color: #fff; */
+}
+
+input,
+textarea {
+  background: white;
+  color: #000;
+}
+
+select option {
+  color: black;
+}
