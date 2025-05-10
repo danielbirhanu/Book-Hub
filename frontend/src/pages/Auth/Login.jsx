@@ -45,8 +45,8 @@ const Login = () => {
         <div className="mr-[4rem] mt-[5rem]">
           <h1 className="text-2xl font-semibold mb-4 text-white">Sign In</h1>
 
-          <form onSubmit={submitHandler} className="container w-[40rem]">
-            <div className="my-[2rem]">
+          <form onSubmit={submitHandler} className="container w-[30rem]">
+            <div className="my-[1rem]">
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-white"
@@ -62,7 +62,7 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            <div className="my-[2rem]">
+            <div className="my-[1rem]">
               <label
                 htmlFor="password"
                 className="block text-sm font-medium text-white"
