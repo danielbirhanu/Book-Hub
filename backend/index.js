@@ -5,6 +5,7 @@ import path from "path"
 
 import connectdb from "./config/db.js"
 import userRoutes from "./routes/userRoutes.js"
+import genreRoutes from "./routes/genreRoutes.js"
 
 dotenv.config()
 connectdb()
