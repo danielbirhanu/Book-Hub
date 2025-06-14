@@ -7,6 +7,9 @@ import { Provider } from "react-redux";
 import { Route, RouterProvider, createRoutesFromElements } from "react-router";
 import { createBrowserRouter } from "react-router-dom";
 
+import AdminRoute from "./pages/Admin/AdminRoute.jsx";
+import GenreList from "./pages/Admin/GenreList.jsx";
+
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Auth/Login.jsx";
 import Register from "./pages/Auth/Register.jsx";
@@ -21,6 +24,9 @@ const router = createBrowserRouter(
       <Route path="/register" element={<Register />} />
       <Route path="" element={<PrivateRoute />}>
         <Route path="/profile" element={<Profile />} />
+      </Route>
+      <Route path="" element={<AdminRoute />} >
+        <Route path="/admin/books/genre" element={<GenreList />} />
       </Route>
     </Route>
   )
