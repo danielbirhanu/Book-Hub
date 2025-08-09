@@ -56,7 +56,7 @@ const Navigation = () => {
               Home
             </Link>
             <Link
-              to="/movies"
+              to="/books"
               className="text-[#5C4B3B] hover:text-[#D97742] font-serif px-3 py-2 font-medium transition-colors border-b-2 border-transparent hover:border-[#D97742]"
             >
               Shop
@@ -97,7 +97,7 @@ const Navigation = () => {
                     <div className="py-1">
                       {userInfo.isAdmin && (
                         <Link
-                          to="/admin/movies/dashboard"
+                          to="/admin/books/dashboard"
                           className="block px-4 py-2 text-sm text-[#5C4B3B] hover:bg-[#FAF7F2]"
                           onClick={() => setDropdownOpen(false)}
                         >
@@ -187,7 +187,7 @@ const Navigation = () => {
               Home
             </Link>
             <Link
-              to="/movies"
+              to="/books"
               className="block px-3 py-2 text-base font-medium text-[#5C4B3B] hover:text-[#D97742] hover:bg-[#f5ede2]"
               onClick={toggleMobileMenu}
             >
@@ -205,7 +205,7 @@ const Navigation = () => {
                 <div className="mt-3 px-2 space-y-1">
                   {userInfo.isAdmin && (
                     <Link
-                      to="/admin/movies/dashboard"
+                      to="/admin/books/dashboard"
                       className="block px-3 py-2 text-base font-medium text-[#5C4B3B] hover:text-[#D97742] hover:bg-[#f5ede2] rounded-md"
                       onClick={toggleMobileMenu}
                     >

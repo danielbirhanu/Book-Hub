@@ -28,23 +28,26 @@ import AdminDashboard from "./pages/Admin/Dashboard/AdminDashboard.jsx";
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<App />}>
-      <Route index={true} path="/" element={<Home />} />
-      <Route path="/books" element={<AllBooks />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/books/:id" element={<BookDetails />} />
+      {/* Public Routes */}
+      <Route index element={<Home />} />
+      <Route path="books" element={<AllBooks />} />
+      <Route path="login" element={<Login />} />
+      <Route path="register" element={<Register />} />
+      <Route path="books/:id" element={<BookDetails />} />
 
-      <Route path="" element={<PrivateRoute />}>
-        <Route path="/profile" element={<Profile />} />
+      {/* Private Routes (User) */}
+      <Route element={<PrivateRoute />}>
+        <Route path="profile" element={<Profile />} />
       </Route>
 
-      <Route path="" element={<AdminRoute />}>
-        <Route path="/admin/books/genre" element={<GenreList />} />
-        <Route path="/admin/books/create" element={<CreateBook />} />
-        <Route path="/admin/books-list" element={<AdminBooksList />} />
-        <Route path="/admin/books/update/:id" element={<UpdateBook />} />
-        <Route path="/admin/books/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/books/comments" element={<AllComments />} />
+      {/* Admin Routes */}
+      <Route path="admin" element={<AdminRoute />}>
+        <Route path="books/genre" element={<GenreList />} />
+        <Route path="books/create" element={<CreateBook />} />
+        <Route path="books-list" element={<AdminBooksList />} />
+        <Route path="books/update/:id" element={<UpdateBook />} />
+        <Route path="books/dashboard" element={<AdminDashboard />} />
+        <Route path="books/comments" element={<AllComments />} />
       </Route>
     </Route>
   )
