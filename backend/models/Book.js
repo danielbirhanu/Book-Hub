@@ -18,7 +18,7 @@ const reviewSchema = mongoose.Schema(
 const bookSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    image: { type: String },
+    image: { type: String, required: true },
     year: { type: Number, required: true },
     genre: { type: ObjectId, ref: "Genre", required: true },
     detail: { type: String, required: true },
