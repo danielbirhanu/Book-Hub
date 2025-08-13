@@ -94,9 +94,9 @@ const GenreList = () => {
   };
 
   return (
-    <div className="ml-[10rem] flex flex-col md:flex-row">
+    <div className="ml-[10rem] flex flex-col md:flex-row text-black">
       <div className="md:w-3/4 p-3">
-        <h1 className="h-12 font-bold text-white">Manage Genres</h1>
+        <h1 className="h-12 text-3xl">Manage Genres</h1>
         <GenreForm
           value={name}
           setValue={setName}
@@ -109,7 +109,7 @@ const GenreList = () => {
           {genres?.map((genre) => (
             <div key={genre._id}>
               <button
-                className="bg-white border border-teal-500 text-black py-2 px-4 rounded-lg m-3 hover:bg-teal-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50"
+                className="bg-white border border-[#3498db] text-[#3498db] py-2 px-4 rounded-lg m-3 hover:bg-[#3498db] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#3498db] focus:ring-opacity-50"
                 onClick={() => {
                   {
                     setModalVisible(true);

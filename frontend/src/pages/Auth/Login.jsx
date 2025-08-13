@@ -34,74 +34,62 @@ const Login = () => {
       const res = await login({ email, password }).unwrap();
       dispatch(setCredentials({ ...res }));
       navigate(redirect);
+      toast.success("Welcome back!");
     } catch (err) {
       toast.error(err?.data?.message || err.error);
     }
   };
 
   return (
-    <div>
-      <section className="pl-[10rem] flex flex-wrap">
-        <div className="mr-[4rem] mt-[5rem]">
-          <h1 className="text-2xl font-semibold mb-4 text-white">Sign In</h1>
-
-          <form onSubmit={submitHandler} className="container w-[30rem]">
-            <div className="my-[1rem]">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-white"
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                className="mt-1 p-2 border rounded w-full"
-                placeholder="Enter Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="my-[1rem]">
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-white"
-              >
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                className="mt-1 p-2 border rounded w-full"
-                placeholder="Enter Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-
-            <button
-              disabled={isLoading}
-              type="submit"
-              className="bg-teal-500 text-white px-4 py-2 rounded cursor-pointer my-[1rem]"
-            >
-              {isLoading ? "Signing In ..." : "Sign In"}
-            </button>
-            {isLoading && <Loader />}
-          </form>
-
-          <div className="mt-4">
-            <p className="text-white">
-              New Customer?{" "}
-              <Link
-                to={redirect ? `/register?redirect=${redirect}` : "/register"}
-                className="text-teal-500 hover:underline"
-              >
-                Register
-              </Link>
-            </p>
-          </div>
+    <div className="min-h-screen flex items-center justify-center text-black">
+      <div className="w-full max-w-sm p-8 space-y-6 bg-white rounded-xl shadow-sm">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold text-[#2c3e50]">Welcome Back</h1>
+          <p className="text-[#7f8c8d]">Sign in to your account</p>
         </div>
-      </section>
+
+        <form onSubmit={submitHandler} className="space-y-4">
+          <div className="space-y-1">
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full px-4 py-2 border border-[#bdc3c7] rounded-lg focus:ring-2 focus:ring-[#3498db] focus:border-transparent"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="space-y-1">
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full px-4 py-2 border border-[#bdc3c7] rounded-lg focus:ring-2 focus:ring-[#3498db] focus:border-transparent"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-3 px-4 bg-[#3498db] text-white font-medium rounded-lg hover:bg-[#2980b9] transition-colors focus:outline-none focus:ring-2 focus:ring-[#3498db] focus:ring-offset-2"
+          >
+            {isLoading ? <Loader /> : "Sign In"}
+          </button>
+        </form>
+
+        <div className="text-center text-sm text-[#7f8c8d]">
+          New to our platform?{" "}
+          <Link
+            to={redirect ? `/register?redirect=${redirect}` : "/register"}
+            className="text-[#3498db] hover:underline font-medium"
+          >
+            Create an account
+          </Link>
+        </div>
+      </div>
     </div>
   );
 };

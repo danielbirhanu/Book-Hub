@@ -45,69 +45,64 @@ const Profile = () => {
   };
 
   return (
-    <div>
-      <div className="container mx-auto p-4 mt-[2rem]">
-        <div className="flex justify-center align-center md:flex md:space-x-4">
-          <div className="md:w-1/3">
-            <h2 className="text-2xl font-semibold mb-4 text-white">Update Profile</h2>
-
-            <form onSubmit={submitHandler}>
-              <div className="mb-4">
-                <label className="block text-white mb-2">Name</label>
-                <input
-                  type="text"
-                  placeholder="Enter name"
-                  className="form-input p-4 rounded-sm w-full"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-white mb-2">Email Address</label>
-                <input
-                  type="email"
-                  placeholder="Enter email"
-                  className="form-input p-4 rounded-sm w-full"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-white mb-2">Password</label>
-                <input
-                  type="password"
-                  placeholder="Enter password"
-                  className="form-input p-4 rounded-sm w-full"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-white mb-2">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  placeholder="Confirm Password"
-                  className="form-input p-4 rounded-sm w-full"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </div>
-
-              <div className="flex justify-between">
-                <button
-                  type="submit"
-                  className="bg-teal-500 mt-[1rem] font-bold text-white py-2 px-4 rounded hover:bg-teal-600"
-                >
-                  Update
-                </button>
-
-                {loadingUpdateProfile && <Loader />}
-              </div>
-            </form>
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa] text-black">
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-sm">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold text-[#2c3e50]">Update Profile</h1>
+          <p className="text-[#7f8c8d]">Manage your account details</p>
         </div>
+
+        <form onSubmit={submitHandler} className="space-y-4">
+          <div className="space-y-1">
+            <input
+              type="text"
+              placeholder="Username"
+              className="w-full px-4 py-2 border border-[#bdc3c7] rounded-lg focus:ring-2 focus:ring-[#3498db] focus:border-transparent"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="space-y-1">
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full px-4 py-2 border border-[#bdc3c7] rounded-lg focus:ring-2 focus:ring-[#3498db] focus:border-transparent"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="space-y-1">
+            <input
+              type="password"
+              placeholder="New Password (leave blank to keep current)"
+              className="w-full px-4 py-2 border border-[#bdc3c7] rounded-lg focus:ring-2 focus:ring-[#3498db] focus:border-transparent"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              className="w-full px-4 py-2 border border-[#bdc3c7] rounded-lg focus:ring-2 focus:ring-[#3498db] focus:border-transparent"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loadingUpdateProfile}
+            className="w-full py-3 px-4 bg-[#3498db] text-white font-medium rounded-lg hover:bg-[#2980b9] transition-colors focus:outline-none focus:ring-2 focus:ring-[#3498db] focus:ring-offset-2"
+          >
+            {loadingUpdateProfile ? <Loader /> : "Update Profile"}
+          </button>
+        </form>
       </div>
     </div>
   );
