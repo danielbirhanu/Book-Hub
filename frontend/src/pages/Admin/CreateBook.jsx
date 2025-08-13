@@ -37,29 +37,20 @@ const CreateBook = () => {
   const { data: genres, isLoading: isLoadingGenres } = useFetchGenresQuery();
 
   useEffect(() => {
-    if (genres) {
+    if (genres && genres.length > 0) {
       setBookData((prevData) => ({
         ...prevData,
-        genre: genres[0]?._id || "",
+        genre: genres[0]._id,
       }));
     }
   }, [genres]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    if (name === "genre") {
-      const selectedGenre = genres.find((genre) => genre.name === value);
-      setBookData((prevData) => ({
-        ...prevData,
-        genre: selectedGenre ? selectedGenre._id : "",
-      }));
-    } else {
-      setBookData((prevData) => ({
-        ...prevData,
-        [name]: value,
-      }));
-    }
+    setBookData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
   const handleImageChange = (e) => {
@@ -71,52 +62,73 @@ const CreateBook = () => {
   };
 
   const handleCreateBook = async (e) => {
-  e.preventDefault();
-  try {
-    // Improved validation
-    if (!bookData.name || !bookData.author || !bookData.year || !bookData.detail || !bookData.genre || !selectedImage) {
-      toast.error("Please fill all required fields");
-      return;
-    }
-
-    // Upload image
-    const formData = new FormData();
-    formData.append("image", selectedImage);
-
-    const uploadImageResponse = await uploadImage(formData).unwrap();
+    e.preventDefault();
     
-    if (!uploadImageResponse?.image) {
-      toast.error("Failed to upload image");
-      return;
+    try {
+      // Validate all required fields
+      if (!bookData.name.trim()) {
+        toast.error("Please enter a book title");
+        return;
+      }
+      if (!bookData.author.trim()) {
+        toast.error("Please enter an author name");
+        return;
+      }
+      if (!bookData.year) {
+        toast.error("Please enter a publication year");
+        return;
+      }
+      if (!bookData.detail.trim()) {
+        toast.error("Please enter a description");
+        return;
+      }
+      if (!bookData.genre) {
+        toast.error("Please select a genre");
+        return;
+      }
+      if (!selectedImage) {
+        toast.error("Please upload a book cover image");
+        return;
+      }
+
+      // Upload image
+      const formData = new FormData();
+      formData.append("image", selectedImage);
+      const uploadImageResponse = await uploadImage(formData).unwrap();
+      
+      if (!uploadImageResponse?.image) {
+        toast.error("Image upload failed - please try again");
+        return;
+      }
+
+      // Create book with the uploaded image path
+      await createBook({
+        ...bookData,
+        image: uploadImageResponse.image,
+      }).unwrap();
+
+      // Reset form
+      setBookData({
+        name: "",
+        author: "",
+        year: "",
+        detail: "",
+        rating: 0,
+        image: null,
+        genre: genres?.[0]?._id || "",
+      });
+      setSelectedImage(null);
+      setImagePreview(null);
+
+      // Navigate and show success
+      navigate("/admin/books-list");
+      toast.success("Book added successfully!");
+      
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast.error(error?.data?.message || "Failed to create book. Please try again.");
     }
-
-    // Create book with the uploaded image path
-    await createBook({
-      ...bookData,
-      image: uploadImageResponse.image,
-    }).unwrap();
-
-    // Reset form and navigate
-    setBookData({
-      name: "",
-      author: "",
-      year: "",
-      detail: "",
-      rating: 0,
-      image: null,
-      genre: genres?.[0]?._id || "",
-    });
-    setSelectedImage(null);
-    setImagePreview(null);
-
-    navigate("/admin/books-list");
-    toast.success("Book added successfully");
-    
-  } catch (error) {
-    console.error("Error:", error);
-    toast.error(error?.data?.message || "Failed to create book");
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center p-4 text-black">
