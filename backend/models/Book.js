@@ -23,7 +23,6 @@ const bookSchema = new mongoose.Schema(
     year: { type: Number, required: true },
     genre: { type: ObjectId, ref: "Genre", required: true },
     detail: { type: String, required: true },
-    //cast: [{ type: String }],
     reviews: [reviewSchema],
     numReviews: { type: Number, required: true, default: 0 },
     createdAt: { type: Date, default: Date.now },
