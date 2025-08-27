@@ -8,3 +8,18 @@ body {
     color: white;
     font-family: 'Poppins', sans-serif;
 }
+
+
+.slick-prev:before,
+.slick-next:before {
+  color: black !important;
+  font-size: 30px !important; 
+}
+
+.slick-prev {
+  left: -35px !important;
+}
+
+.slick-next {
+  right: -35px !important;
+}

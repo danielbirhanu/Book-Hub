@@ -8,7 +8,7 @@ const App = () => {
     <>
       <ToastContainer />
       <Navigation />
-      <main className="mt-16 bg-[#f8f9fa] min-h-screen">
+      <main className="bg-[#f8f9fa] min-h-screen">
         <Outlet />
       </main>
     </>

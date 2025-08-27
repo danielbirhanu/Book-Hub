@@ -59,7 +59,7 @@ const Navigation = () => {
               to="/books"
               className="hover:text-[#3498db] font-serif px-3 py-2 font-medium transition-colors border-b-2 border-transparent hover:border-[#3498db]"
             >
-              Shop
+              Books
             </Link>
           </div>
 
@@ -191,7 +191,7 @@ const Navigation = () => {
               className="block px-3 py-2 text-base font-medium  hover:text-[#3498db]"
               onClick={toggleMobileMenu}
             >
-              Shop
+              Books
             </Link>
           </div>
           <div className="pt-4 pb-3 border-t border-[#3a3939]">

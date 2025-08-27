@@ -1,9 +1,16 @@
-import React from 'react'
+import Header from "./Books/Header";
+import BooksContainerPage from "./Books/BooksContainerPage";
 
 const Home = () => {
   return (
-    <div>Home</div>
-  )
-}
+    <div className="text-black">
+      <Header />
 
-export default Home
+      <section className="mt-[3rem]">
+        <BooksContainerPage />
+      </section>
+    </div>
+  );
+};
+
+export default Home;
