@@ -188,7 +188,7 @@ const AllBooks = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-black opacity-70"></div>
         
         <div className="relative z-10 text-center text-white px-4">
-          <h1 className="text-5xl md:text-7xl font-bold mb-8">The Books Hub</h1>
+          <h1 className="text-5xl md:text-7xl font-bold mb-8">Book Hub</h1>
           <p className="text-xl md:text-2xl max-w-2xl mx-auto mb-12">
             Literary Journey: Unveiling the Magic of Books
           </p>

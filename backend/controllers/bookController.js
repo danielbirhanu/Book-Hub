@@ -50,19 +50,21 @@ const updateBook = async (req, res) => {
   }
 };
 
+// Corrected BookReview controller
 const BookReview = async (req, res) => {
   try {
     const { rating, comment } = req.body;
-    const Book = await Book.findById(req.params.id);
+    
+    // Fix: Use a different variable name
+    const book = await Book.findById(req.params.id);
 
-    if (Book) {
-      const alreadyReviewed = Book.reviews.find(
+    if (book) {
+      const alreadyReviewed = book.reviews.find(
         (r) => r.user.toString() === req.user._id.toString()
       );
 
       if (alreadyReviewed) {
-        res.status(400);
-        throw new Error("Book already reviewed");
+        return res.status(400).json({ message: "Book already reviewed" });
       }
 
       const review = {
@@ -72,21 +74,20 @@ const BookReview = async (req, res) => {
         user: req.user._id,
       };
 
-      Book.reviews.push(review);
-      Book.numReviews = Book.reviews.length;
-      Book.rating =
-        Book.reviews.reduce((acc, item) => item.rating + acc, 0) /
-        Book.reviews.length;
+      book.reviews.push(review);
+      book.numReviews = book.reviews.length;
+      book.rating =
+        book.reviews.reduce((acc, item) => item.rating + acc, 0) /
+        book.reviews.length;
 
-      await Book.save();
+      await book.save();
       res.status(201).json({ message: "Review Added" });
     } else {
-      res.status(404);
-      throw new Error("Book not found");
+      res.status(404).json({ message: "Book not found" });
     }
   } catch (error) {
     console.error(error);
-    res.status(400).json(error.message);
+    res.status(400).json({ message: error.message });
   }
 };
 
