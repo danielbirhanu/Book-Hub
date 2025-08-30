@@ -108,14 +108,14 @@ const deleteBook = async (req, res) => {
 
 const deleteComment = async (req, res) => {
   try {
-    const { BookId, reviewId } = req.body;
-    const Book = await Book.findById(BookId);
+    const { bookId, reviewId } = req.body;
+    const book = await Book.findById(bookId);
 
-    if (!Book) {
+    if (!book) {
       return res.status(404).json({ message: "Book not found" });
     }
 
-    const reviewIndex = Book.reviews.findIndex(
+    const reviewIndex = book.reviews.findIndex(
       (r) => r._id.toString() === reviewId
     );
 
@@ -123,15 +123,15 @@ const deleteComment = async (req, res) => {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    Book.reviews.splice(reviewIndex, 1);
-    Book.numReviews = Book.reviews.length;
-    Book.rating =
-      Book.reviews.length > 0
-        ? Book.reviews.reduce((acc, item) => item.rating + acc, 0) /
-          Book.reviews.length
+    book.reviews.splice(reviewIndex, 1);
+    book.numReviews = book.reviews.length;
+    book.rating =
+      book.reviews.length > 0
+        ? book.reviews.reduce((acc, item) => item.rating + acc, 0) /
+          book.reviews.length
         : 0;
 
-    await Book.save();
+    await book.save();
     res.json({ message: "Comment Deleted Successfully" });
   } catch (error) {
     console.error(error);

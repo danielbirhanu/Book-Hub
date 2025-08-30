@@ -81,7 +81,7 @@ const BookDetails = () => {
               
               <div className="border-t border-gray-200 pt-6 mt-6">
                 <p className="text-xl font-semibold text-gray-800 mb-2">
-                  Release Year: <span className="text-indigo-600 font-bold">{book?.year}</span>
+                  Release Year: <span className="text-[#3498db] font-bold">{book?.year}</span>
                 </p>
               </div>
             </div>

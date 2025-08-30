@@ -15,6 +15,8 @@ import {
   setUniqueYears,
 } from "../../redux/features/books/booksSlice";
 
+import bookBg from "../../assets/book-bg.jfif";
+
 const CustomSelect = ({ label, value, onChange, options, placeholder }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -184,7 +186,7 @@ const AllBooks = () => {
     <div className="min-h-screen bg-gray-50 text-black">
       {/* Hero Section */}
       <section className="relative h-[25rem] w-full flex items-center justify-center bg-cover bg-center mb-24" 
-               style={{ backgroundImage: "url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-4.0.3')" }}>
+               style={{ backgroundImage: `url(${bookBg})` }}>
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-black opacity-70"></div>
         
         <div className="relative z-10 text-center text-white px-4">

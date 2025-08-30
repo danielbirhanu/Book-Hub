@@ -61,7 +61,7 @@ const BookTabs = ({ userInfo, submitHandler, comment, setComment, book, rating, 
             <p className="text-lg text-gray-600 mb-4">Please sign in to write a review</p>
             <Link 
               to="/login" 
-              className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200"
+              className="inline-flex items-center text-[#3498db] hover:text-indigo-800 font-medium transition-colors duration-200"
             >
               Sign In
               <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
