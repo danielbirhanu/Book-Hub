@@ -1,12 +1,13 @@
-import React from "react";
 import Main from "./Main/Main";
 import Sidebar from "./Sidebar/Sidebar";
 
 const AdminDashboard = () => {
   return (
-    <div className="flex min-h-screen bg-gray-900">
+    <div className="flex bg-[#f8f9fa] min-h-screen">
       <Sidebar />
-      <Main />
+      <main className="flex-1 p-6 overflow-y-auto">
+        <Main />
+      </main>
     </div>
   );
 };

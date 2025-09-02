@@ -185,7 +185,7 @@ const AllBooks = () => {
   return (
     <div className="min-h-screen bg-gray-50 text-black">
       {/* Hero Section */}
-      <section className="relative h-[25rem] w-full flex items-center justify-center bg-cover bg-center mb-24" 
+      <section className="relative h-[20rem] w-full flex items-center justify-center bg-cover bg-center mb-24" 
                style={{ backgroundImage: `url(${bookBg})` }}>
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-black opacity-70"></div>
         

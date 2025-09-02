@@ -1,4 +1,3 @@
-import React from "react";
 import SecondaryCard from "./SecondaryCard";
 import VideoCard from "./VideoCard";
 import RealTimeCard from "./RealTimeCard";
@@ -20,58 +19,50 @@ const Main = () => {
   );
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
-        <p className="text-gray-600">Welcome to your admin dashboard</p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div className="space-y-8">
+      {/* Cards Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <SecondaryCard
           pill="Users"
           content={visitors?.length}
-          info="20.2k more than usual"
-          gradient="from-blue-500 to-cyan-400"
+          info="3 more than usual"
+          gradient="from-green-500 to-emerald-400"
         />
         <SecondaryCard
           pill="Comments"
           content={sumOfCommentsLength}
-          info="742.8 more than usual"
-          gradient="from-amber-500 to-yellow-400"
+          info="2 more than usual"
+          gradient="from-yellow-400 to-amber-300"
         />
         <SecondaryCard
           pill="Books"
           content={allBooks?.length}
-          info="372+ more than usual"
-          gradient="from-green-500 to-emerald-400"
+          info="5 more than usual"
+          gradient="from-lime-500 to-green-400"
         />
       </div>
-      
+
+      {/* Content Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-800">Top Content</h2>
-              <p className="text-gray-600 font-semibold">Comments</p>
-            </div>
-            
-            <div className="space-y-4">
-              {topBooks?.map((book) => (
-                <VideoCard
-                  key={book._id}
-                  image={book.image}
-                  title={book.name}
-                  date={book.year}
-                  comments={book.numReviews}
-                />
-              ))}
-            </div>
+        <div className="col-span-2 bg-white rounded-lg shadow p-6">
+          <div className="flex justify-between mb-4 font-semibold text-gray-700">
+            <p>Top Content</p>
+            <p>Comments</p>
+          </div>
+          <div className="divide-y divide-gray-200">
+            {topBooks?.map((book) => (
+              <VideoCard
+                key={book._id}
+                image={book.image}
+                title={book.name}
+                date={book.year}
+                comments={book.numReviews}
+              />
+            ))}
           </div>
         </div>
-        
-        <div className="lg:col-span-1">
-          <RealTimeCard />
-        </div>
+
+        <RealTimeCard />
       </div>
     </div>
   );

@@ -1,60 +1,32 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { LayoutDashboard, BookOpen, Layers, Edit, MessageSquare } from "lucide-react";
 
 const Sidebar = () => {
-  const location = useLocation();
-  
   const menuItems = [
-    { path: "/admin/books/dashboard", label: "Dashboard", icon: "📊" },
-    { path: "/admin/books/create", label: "Create Book", icon: "📝" },
-    { path: "/admin/books/genre", label: "Create Genre", icon: "🏷️" },
-    { path: "/admin/books/update", label: "Update Book", icon: "🔄" },
-    { path: "/admin/books/comments", label: "Comments", icon: "💬" },
+    { to: "/admin/books/dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+    { to: "/admin/books/create", label: "Create Book", icon: <BookOpen size={20} /> },
+    { to: "/admin/books/genre", label: "Create Genre", icon: <Layers size={20} /> },
+    { to: "/admin/books-list", label: "Update Book", icon: <Edit size={20} /> },
+    { to: "/admin/books/comments", label: "Comments", icon: <MessageSquare size={20} /> },
   ];
 
   return (
-    <div className="w-64 bg-gray-800 text-white flex-shrink-0 hidden md:block">
-      <div className="p-6">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-green-400 to-lime-300 bg-clip-text text-transparent">
-          Admin Panel
-        </h1>
-      </div>
-      
-      <nav className="mt-8">
-        <ul className="space-y-2 px-4">
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
-                    isActive
-                      ? "bg-gradient-to-r from-green-500 to-lime-400 text-gray-900 font-semibold shadow-lg"
-                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                  }`}
-                >
-                  <span className="text-xl mr-3">{item.icon}</span>
-                  <span>{item.label}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-      
-      <div className="absolute bottom-0 w-64 p-4 bg-gray-800 border-t border-gray-700">
-        <div className="flex items-center">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-400 to-lime-300 flex items-center justify-center">
-            <span className="text-gray-900 font-bold">A</span>
-          </div>
-          <div className="ml-3">
-            <p className="text-sm font-medium text-white">Admin User</p>
-            <p className="text-xs text-gray-400">Administrator</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <aside className="w-64 bg-white shadow-md border-r border-gray-200 hidden md:flex flex-col">
+      <div className="p-6 text-2xl font-bold text-[#2c3e50]">Admin</div>
+      <ul className="flex-1 px-4 space-y-2">
+        {menuItems.map((item, idx) => (
+          <li key={idx}>
+            <Link
+              to={item.to}
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-green-100 hover:text-green-700 transition"
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </aside>
   );
 };
 
