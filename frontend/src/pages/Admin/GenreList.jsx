@@ -94,9 +94,9 @@ const GenreList = () => {
   };
 
   return (
-    <div className="ml-[10rem] flex flex-col md:flex-row text-black">
-      <div className="md:w-3/4 p-3">
-        <h1 className="h-12 text-3xl">Manage Genres</h1>
+    <div className="mx-auto p-4 max-w-7xl text-black">
+      <div className="w-full p-3">
+        <h1 className="h-12 text-2xl md:text-3xl font-bold">Manage Genres</h1>
         <GenreForm
           value={name}
           setValue={setName}
@@ -105,11 +105,11 @@ const GenreList = () => {
 
         <br />
 
-        <div className="flex flex-wrap">
+        <div className="flex flex-wrap gap-2 md:gap-3">
           {genres?.map((genre) => (
             <div key={genre._id}>
               <button
-                className="bg-white border border-[#3498db] text-[#3498db] py-2 px-4 rounded-lg m-3 hover:bg-[#3498db] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#3498db] focus:ring-opacity-50"
+                className="bg-white border border-[#3498db] text-[#3498db] py-2 px-3 md:px-4 rounded-lg hover:bg-[#3498db] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#3498db] focus:ring-opacity-50 transition-colors duration-200 text-sm md:text-base"
                 onClick={() => {
                   {
                     setModalVisible(true);
@@ -125,13 +125,16 @@ const GenreList = () => {
         </div>
 
         <Modal isOpen={modalVisible} onClose={() => setModalVisible(false)}>
-          <GenreForm
-            value={updatingName}
-            setValue={(value) => setUpdatingName(value)}
-            handleSubmit={handleUpdateGenre}
-            buttonText="Update"
-            handleDelete={handleDeleteGenre}
-          />
+          <div className="p-2 md:p-4">
+            <h2 className="text-xl font-semibold mb-4">Edit Genre</h2>
+            <GenreForm
+              value={updatingName}
+              setValue={(value) => setUpdatingName(value)}
+              handleSubmit={handleUpdateGenre}
+              buttonText="Update"
+              handleDelete={handleDeleteGenre}
+            />
+          </div>
         </Modal>
       </div>
     </div>
