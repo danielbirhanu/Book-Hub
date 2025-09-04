@@ -7,8 +7,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      "/api/": "https://book-hub-rlu6.onrender.com",
-      "/uploads/": "https://book-hub-rlu6.onrender.com",
+      "/api/": "http://localhost:3000",
+      "/uploads/": "http://localhost:3000",
     },
   },
 })
