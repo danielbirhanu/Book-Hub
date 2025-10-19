@@ -26,12 +26,12 @@ const CreateBook = () => {
 
   const [
     createBook,
-    { isLoading: isCreatingBook, error: createBookErrorDetail },
+    { isLoading: isCreatingBook, error: _createBookErrorDetail },
   ] = useCreateBookMutation();
 
   const [
     uploadImage,
-    { isLoading: isUploadingImage, error: uploadImageErrorDetails },
+    { isLoading: isUploadingImage },
   ] = useUploadImageMutation();
 
   const { data: genres, isLoading: isLoadingGenres } = useFetchGenresQuery();
