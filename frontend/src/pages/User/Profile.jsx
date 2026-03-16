@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import Loader from "../../components/Loader";
-import { useProfileMutation } from "../../redux/api/users";
+import { useUpdateProfileMutation } from "../../redux/api/users";
 import { setCredentials } from "../../redux/features/auth/authSlice";
 
 const Profile = () => {
@@ -14,12 +14,16 @@ const Profile = () => {
   const { userInfo } = useSelector((state) => state.auth);
 
   const [updateProfile, { isLoading: loadingUpdateProfile }] =
-    useProfileMutation();
+    useUpdateProfileMutation();
 
   useEffect(() => {
+    if (!userInfo) {
+      return;
+    }
+
     setUsername(userInfo.username);
     setEmail(userInfo.email);
-  }, [userInfo.email, userInfo.username]);
+  }, [userInfo]);
 
   const dispatch = useDispatch();
 
@@ -31,7 +35,6 @@ const Profile = () => {
     } else {
       try {
         const res = await updateProfile({
-          _id: userInfo._id,
           username,
           email,
           password,

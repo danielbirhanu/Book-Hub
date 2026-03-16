@@ -3,6 +3,12 @@ import { USERS_URL } from "../constants";
 
 export const userApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    getProfile: builder.query({
+      query: () => ({
+        url: `${USERS_URL}/profile`,
+      }),
+    }),
+
     login: builder.mutation({
       query: (data) => ({
         url: `${USERS_URL}/auth`,
@@ -26,7 +32,7 @@ export const userApiSlice = apiSlice.injectEndpoints({
       }),
     }),
 
-    profile: builder.mutation({
+    updateProfile: builder.mutation({
       query: (data) => ({
         url: `${USERS_URL}/profile`,
         method: "PUT",
@@ -43,9 +49,11 @@ export const userApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
+  useGetProfileQuery,
+  useLazyGetProfileQuery,
   useLoginMutation,
   useRegisterMutation,
   useLogoutMutation,
-  useProfileMutation,
+  useUpdateProfileMutation,
   useGetUsersQuery,
 } = userApiSlice;

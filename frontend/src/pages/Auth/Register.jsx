@@ -41,7 +41,7 @@ const Register = () => {
         navigate(redirect);
         toast.success("Welcome aboard!");
       } catch (err) {
-        toast.error(err.data.message);
+        toast.error(err?.data?.message || err.error);
       }
     }
   };

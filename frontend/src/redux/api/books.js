@@ -26,7 +26,7 @@ export const booksApiSlice = apiSlice.injectEndpoints({
       query: ({ id, rating, comment }) => ({
         url: `${BOOK_URL}/${id}/reviews`,
         method: "POST",
-        body: { rating, id, comment },
+        body: { rating, comment },
       }),
     }),
 

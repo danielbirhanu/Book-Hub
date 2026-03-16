@@ -1,83 +1,73 @@
 import Genre from "../models/Genre.js";
 import asyncHandler from "../middlewares/asyncHandler.js";
+import createHttpError from "../utils/httpError.js";
+import { validateGenrePayload } from "../validation/genreValidation.js";
+
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const createGenre = asyncHandler(async (req, res) => {
-  try {
-    const { name } = req.body;
+  const { name } = validateGenrePayload(req.body);
+  const escapedName = escapeRegex(name);
 
-    if (!name) {
-      return res.json({ error: "Name is required" });
-    }
+  const existingGenre = await Genre.findOne({
+    name: { $regex: `^${escapedName}$`, $options: "i" },
+  });
 
-    const existingGenre = await Genre.findOne({ name });
-
-    if (existingGenre) {
-      return res.json({ error: "Already exists" });
-    }
-
-    const genre = await new Genre({ name }).save();
-    res.json(genre);
-  } catch (error) {
-    console.log(error);
-    return res.status(400).json(error);
+  if (existingGenre) {
+    throw createHttpError(409, "Genre already exists");
   }
+
+  const genre = await Genre.create({ name });
+  res.status(201).json(genre);
 });
 
 const updateGenre = asyncHandler(async (req, res) => {
-  try {
-    const { name } = req.body;
-    const { id } = req.params;
+  const { name } = validateGenrePayload(req.body);
+  const escapedName = escapeRegex(name);
+  const genre = await Genre.findById(req.params.id);
 
-    const genre = await Genre.findOne({ _id: id });
-
-    if (!genre) {
-      return res.status(404).json({ error: "Genre not found" });
-    }
-
-    genre.name = name;
-
-    const updatedGenre = await genre.save();
-    res.json(updatedGenre);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+  if (!genre) {
+    throw createHttpError(404, "Genre not found");
   }
+
+  const duplicateGenre = await Genre.findOne({
+    _id: { $ne: req.params.id },
+    name: { $regex: `^${escapedName}$`, $options: "i" },
+  });
+
+  if (duplicateGenre) {
+    throw createHttpError(409, "Genre already exists");
+  }
+
+  genre.name = name;
+
+  const updatedGenre = await genre.save();
+  res.json(updatedGenre);
 });
 
 const removeGenre = asyncHandler(async (req, res) => {
-  try {
-    const { id } = req.params;
-    const removed = await Genre.findByIdAndDelete(id);
+  const removed = await Genre.findByIdAndDelete(req.params.id);
 
-    if (!removed) {
-      return res.status(404).json({ error: "Genre not found" });
-    }
-
-    res.json(removed);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Interval server error" });
+  if (!removed) {
+    throw createHttpError(404, "Genre not found");
   }
+
+  res.json(removed);
 });
 
 const listGenres = asyncHandler(async (req, res) => {
-  try {
-    const all = await Genre.find({});
-    res.json(all);
-  } catch (error) {
-    console.log(error);
-    return res.status(400).json(error.message);
-  }
+  const all = await Genre.find({});
+  res.json(all);
 });
 
 const readGenre = asyncHandler(async (req, res) => {
-  try {
-    const genre = await Genre.findOne({ _id: req.params.id });
-    res.json(genre);
-  } catch (error) {
-    console.log(error);
-    return res.status(400).json(error.message);
+  const genre = await Genre.findById(req.params.id);
+
+  if (!genre) {
+    throw createHttpError(404, "Genre not found");
   }
+
+  res.json(genre);
 });
 
 export { createGenre, updateGenre, removeGenre, listGenres, readGenre };

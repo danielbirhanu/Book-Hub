@@ -21,7 +21,6 @@ const UpdateBook = () => {
     year: "",
     detail: "",
     genre: "",
-    rating: 0,
     image: null,
   });
 
@@ -32,7 +31,14 @@ const UpdateBook = () => {
 
   useEffect(() => {
     if (initialBookData) {
-      setBookData(initialBookData);
+      setBookData({
+        name: initialBookData.name || "",
+        author: initialBookData.author || "",
+        year: initialBookData.year || "",
+        detail: initialBookData.detail || "",
+        genre: initialBookData.genre || "",
+        image: initialBookData.image || "",
+      });
       if (initialBookData.image) {
         setImagePreview(initialBookData.image);
       }
@@ -99,8 +105,12 @@ const UpdateBook = () => {
       await updateBook({
         id: id,
         updatedBook: {
-          ...bookData,
           image: uploadedImagePath,
+          name: bookData.name,
+          author: bookData.author,
+          year: bookData.year,
+          detail: bookData.detail,
+          genre: bookData.genre,
         },
       }).unwrap();
 

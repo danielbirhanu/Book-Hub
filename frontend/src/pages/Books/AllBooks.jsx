@@ -89,13 +89,16 @@ const AllBooks = () => {
   const { booksFilter, filteredBooks } = useSelector((state) => state.books);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const bookYears = data?.map((book) => book.year);
-  const uniqueYears = Array.from(new Set(bookYears));
+  const books = data ?? [];
+  const uniqueYears = Array.from(new Set(books.map((book) => book.year)));
 
   useEffect(() => {
-    dispatch(setFilteredBooks(data || []));
-    dispatch(setBookYears(bookYears));
-    dispatch(setUniqueYears(uniqueYears));
+    const nextBooks = data ?? [];
+    const nextYears = nextBooks.map((book) => book.year);
+
+    dispatch(setFilteredBooks(nextBooks));
+    dispatch(setBookYears(nextYears));
+    dispatch(setUniqueYears(Array.from(new Set(nextYears))));
   }, [data, dispatch]);
 
   const handleSearchChange = (e) => {
@@ -105,7 +108,7 @@ const AllBooks = () => {
       searchTerm 
     }));
 
-    const filteredBooks = data.filter((book) =>
+    const filteredBooks = books.filter((book) =>
       book.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -118,7 +121,7 @@ const AllBooks = () => {
       selectedGenre: genreId 
     }));
     
-    const filterByGenre = data.filter((book) => book.genre === genreId);
+    const filterByGenre = books.filter((book) => book.genre === genreId);
     dispatch(setFilteredBooks(filterByGenre));
   };
 
@@ -128,7 +131,7 @@ const AllBooks = () => {
       selectedYear: year 
     }));
     
-    const filterByYear = data.filter((book) => book.year === +year);
+    const filterByYear = books.filter((book) => book.year === +year);
     dispatch(setFilteredBooks(filterByYear));
   };
 
@@ -149,7 +152,7 @@ const AllBooks = () => {
         dispatch(setFilteredBooks(randomBooks));
         break;
       default:
-        dispatch(setFilteredBooks(data || []));
+        dispatch(setFilteredBooks(books));
         break;
     }
   };
@@ -161,7 +164,7 @@ const AllBooks = () => {
       selectedYear: "", 
       selectedSort: "" 
     }));
-    dispatch(setFilteredBooks(data || []));
+    dispatch(setFilteredBooks(books));
   };
 
   // Prepare options for custom selects

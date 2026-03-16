@@ -1,11 +1,12 @@
 import { isValidObjectId } from "mongoose";
+import createHttpError from "../utils/httpError.js";
 
 function checkId(req, res, next) {
   if (!isValidObjectId(req.params.id)) {
-    res.status(404);
-    throw new Error(`Invalid Object Of: ${req.params.id}`);
+    return next(createHttpError(400, `Invalid id: ${req.params.id}`));
   }
-  next();
+
+  return next();
 }
 
 export default checkId;

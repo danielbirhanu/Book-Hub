@@ -1,9 +1,23 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const loadCachedUser = () => {
+  const cachedUser = localStorage.getItem("userInfo");
+
+  if (!cachedUser) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(cachedUser);
+  } catch {
+    localStorage.removeItem("userInfo");
+    return null;
+  }
+};
+
 const initialState = {
-  userInfo: localStorage.getItem("userInfo")
-    ? JSON.parse(localStorage.getItem("userInfo"))
-    : null,
+  userInfo: loadCachedUser(),
+  authChecked: false,
 };
 
 const authSlice = createSlice({
@@ -12,18 +26,21 @@ const authSlice = createSlice({
   reducers: {
     setCredentials: (state, action) => {
       state.userInfo = action.payload;
+      state.authChecked = true;
       localStorage.setItem("userInfo", JSON.stringify(action.payload));
-
-      const expirationTime = new Date().getTime() + 30 * 24 * 60 * 60 * 1000;
-      localStorage.setItem("expirationTime", expirationTime);
     },
 
     logout: (state) => {
       state.userInfo = null;
-      localStorage.clear();
+      state.authChecked = true;
+      localStorage.removeItem("userInfo");
+    },
+
+    setAuthChecked: (state, action) => {
+      state.authChecked = action.payload;
     },
   },
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { setCredentials, logout, setAuthChecked } = authSlice.actions;
 export default authSlice.reducer;

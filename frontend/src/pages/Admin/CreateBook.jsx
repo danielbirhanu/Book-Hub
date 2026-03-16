@@ -16,7 +16,6 @@ const CreateBook = () => {
     author: "",
     year: "",
     detail: "",
-    rating: 0,
     image: null,
     genre: "",
   });
@@ -113,7 +112,6 @@ const CreateBook = () => {
         author: "",
         year: "",
         detail: "",
-        rating: 0,
         image: null,
         genre: genres?.[0]?._id || "",
       });
