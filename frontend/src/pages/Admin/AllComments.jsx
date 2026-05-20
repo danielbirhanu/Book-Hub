@@ -3,20 +3,34 @@ import {
   useDeleteCommentMutation,
   useGetAllBooksQuery,
 } from "../../redux/api/books";
+import { useFetchGenresQuery } from "../../redux/api/genre";
 import { toast } from "react-toastify";
 
 const AllComments = () => {
   const { data: books, refetch, isLoading } = useGetAllBooksQuery();
+  const { data: genres = [] } = useFetchGenresQuery();
   const [deleteComment] = useDeleteCommentMutation();
+
+  const getGenreName = (genre) => {
+    if (!genre) {
+      return "Unknown Genre";
+    }
+
+    if (typeof genre === "object") {
+      return genre.name || "Unknown Genre";
+    }
+
+    return genres.find((item) => item._id === genre)?.name || "Unknown Genre";
+  };
 
   const handleDeleteComment = async (bookId, reviewId) => {
     try {
-      await deleteComment({ bookId, reviewId });
+      await deleteComment({ bookId, reviewId }).unwrap();
       toast.success("Comment Deleted");
       refetch();
     } catch (error) {
       console.error("Error deleting comment: ", error);
-      toast.error("Failed to delete comment");
+      toast.error(error?.data?.message || "Failed to delete comment");
     }
   };
 
@@ -79,7 +93,7 @@ const AllComments = () => {
                     <div>
                       <h2 className="text-xl font-bold text-gray-900">{book.name}</h2>
                       <p className="text-gray-600">by {book.author}</p>
-                      <p className="text-sm text-gray-500 mt-1">{book.genre?.name || "Unknown Genre"}</p>
+                      <p className="text-sm text-gray-500 mt-1">{getGenreName(book.genre)}</p>
                     </div>
                   </div>
                 </div>

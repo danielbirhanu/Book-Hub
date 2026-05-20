@@ -1,172 +1,129 @@
 import Book from "../models/Book.js";
+import asyncHandler from "../middlewares/asyncHandler.js";
+import createHttpError from "../utils/httpError.js";
+import {
+  validateBookPayload,
+  validateDeleteCommentPayload,
+  validateReviewPayload,
+} from "../validation/bookValidation.js";
+import {
+  buildReviewPayload,
+  recalculateReviewStats,
+} from "../services/bookService.js";
 
-const createBook = async (req, res) => {
-  try {
-    const newBook = new Book(req.body);
-    const savedBook = await newBook.save();
-    res.json(savedBook);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+const createBook = asyncHandler(async (req, res) => {
+  const payload = validateBookPayload(req.body);
+  const newBook = await Book.create(payload);
+
+  res.status(201).json(newBook);
+});
+
+const getAllBooks = asyncHandler(async (req, res) => {
+  const books = await Book.find();
+  res.json(books);
+});
+
+const getSpecificBook = asyncHandler(async (req, res) => {
+  const specificBook = await Book.findById(req.params.id);
+  if (!specificBook) {
+    throw createHttpError(404, "Book not found");
   }
-};
 
-const getAllBooks = async (req, res) => {
-  try {
-    const Books = await Book.find();
-    res.json(Books);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  res.json(specificBook);
+});
+
+const updateBook = asyncHandler(async (req, res) => {
+  const payload = validateBookPayload(req.body);
+  const updatedBook = await Book.findByIdAndUpdate(req.params.id, payload, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!updatedBook) {
+    throw createHttpError(404, "Book not found");
   }
-};
 
-const getSpecificBook = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const specificBook = await Book.findById(id);
-    if (!specificBook) {
-      return res.status(404).json({ message: "Book not found" });
-    }
+  res.json(updatedBook);
+});
 
-    res.json(specificBook);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+const BookReview = asyncHandler(async (req, res) => {
+  const { rating, comment } = validateReviewPayload(req.body);
+  const book = await Book.findById(req.params.id);
+
+  if (!book) {
+    throw createHttpError(404, "Book not found");
   }
-};
 
-const updateBook = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updatedBook = await Book.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
+  const alreadyReviewed = book.reviews.find(
+    (review) => review.user.toString() === req.user._id.toString()
+  );
 
-    if (!updatedBook) {
-      return res.status(404).json({ message: "Book not found" });
-    }
-
-    res.json(updatedBook);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  if (alreadyReviewed) {
+    throw createHttpError(400, "Book already reviewed");
   }
-};
 
-// Corrected BookReview controller
-const BookReview = async (req, res) => {
-  try {
-    const { rating, comment } = req.body;
-    
-    // Fix: Use a different variable name
-    const book = await Book.findById(req.params.id);
+  book.reviews.push(
+    buildReviewPayload({
+      rating,
+      comment,
+      user: req.user,
+    })
+  );
+  recalculateReviewStats(book);
 
-    if (book) {
-      const alreadyReviewed = book.reviews.find(
-        (r) => r.user.toString() === req.user._id.toString()
-      );
+  await book.save();
+  res.status(201).json({ message: "Review added" });
+});
 
-      if (alreadyReviewed) {
-        return res.status(400).json({ message: "Book already reviewed" });
-      }
+const deleteBook = asyncHandler(async (req, res) => {
+  const deletedBook = await Book.findByIdAndDelete(req.params.id);
 
-      const review = {
-        name: req.user.username,
-        rating: Number(rating),
-        comment,
-        user: req.user._id,
-      };
-
-      book.reviews.push(review);
-      book.numReviews = book.reviews.length;
-      book.rating =
-        book.reviews.reduce((acc, item) => item.rating + acc, 0) /
-        book.reviews.length;
-
-      await book.save();
-      res.status(201).json({ message: "Review Added" });
-    } else {
-      res.status(404).json({ message: "Book not found" });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ message: error.message });
+  if (!deletedBook) {
+    throw createHttpError(404, "Book not found");
   }
-};
 
-const deleteBook = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const deleteBook = await Book.findByIdAndDelete(id);
+  res.json({ message: "Book deleted successfully" });
+});
 
-    if (!deleteBook) {
-      return res.status(404).json({ message: "Book not found" });
-    }
+const deleteComment = asyncHandler(async (req, res) => {
+  const { bookId, reviewId } = validateDeleteCommentPayload(req.body);
+  const book = await Book.findById(bookId);
 
-    res.json({ message: "Book Deleted Successfully" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  if (!book) {
+    throw createHttpError(404, "Book not found");
   }
-};
 
-const deleteComment = async (req, res) => {
-  try {
-    const { bookId, reviewId } = req.body;
-    const book = await Book.findById(bookId);
+  const reviewIndex = book.reviews.findIndex(
+    (review) => review._id.toString() === reviewId
+  );
 
-    if (!book) {
-      return res.status(404).json({ message: "Book not found" });
-    }
-
-    const reviewIndex = book.reviews.findIndex(
-      (r) => r._id.toString() === reviewId
-    );
-
-    if (reviewIndex === -1) {
-      return res.status(404).json({ message: "Comment not found" });
-    }
-
-    book.reviews.splice(reviewIndex, 1);
-    book.numReviews = book.reviews.length;
-    book.rating =
-      book.reviews.length > 0
-        ? book.reviews.reduce((acc, item) => item.rating + acc, 0) /
-          book.reviews.length
-        : 0;
-
-    await book.save();
-    res.json({ message: "Comment Deleted Successfully" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+  if (reviewIndex === -1) {
+    throw createHttpError(404, "Comment not found");
   }
-};
 
-const getNewBooks = async (req, res) => {
-  try {
-    const newBooks = await Book.find().sort({ createdAt: -1 }).limit(10);
-    res.json(newBooks);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+  book.reviews.splice(reviewIndex, 1);
+  recalculateReviewStats(book);
 
-const getTopBooks = async (req, res) => {
-  try {
-    const topRatedBooks = await Book.find()
-      .sort({ numReviews: -1 })
-      .limit(10);
-    res.json(topRatedBooks);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+  await book.save();
+  res.json({ message: "Comment deleted successfully" });
+});
 
-const getRandomBooks = async (req, res) => {
-  try {
-    const randomBooks = await Book.aggregate([{ $sample: { size: 10 } }]);
-    res.json(randomBooks);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+const getNewBooks = asyncHandler(async (req, res) => {
+  const newBooks = await Book.find().sort({ createdAt: -1 }).limit(10);
+  res.json(newBooks);
+});
+
+const getTopBooks = asyncHandler(async (req, res) => {
+  const topRatedBooks = await Book.find()
+    .sort({ rating: -1, numReviews: -1 })
+    .limit(10);
+  res.json(topRatedBooks);
+});
+
+const getRandomBooks = asyncHandler(async (req, res) => {
+  const randomBooks = await Book.aggregate([{ $sample: { size: 10 } }]);
+  res.json(randomBooks);
+});
 
 export {
   createBook,

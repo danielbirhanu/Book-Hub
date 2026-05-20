@@ -20,7 +20,7 @@ import checkId from "../middlewares/checkId.js";
 
 // Public Routes
 router.get("/all-Books", getAllBooks);
-router.get("/specific-Book/:id", getSpecificBook);
+router.get("/specific-Book/:id", checkId, getSpecificBook);
 router.get("/new-Books", getNewBooks);
 router.get("/top-Books", getTopBooks);
 router.get("/random-Books", getRandomBooks);
@@ -30,8 +30,8 @@ router.post("/:id/reviews", authenticate, checkId, BookReview);
 
 // Admin
 router.post("/create-Book", authenticate, authorizeAdmin, createBook);
-router.put("/update-Book/:id", authenticate, authorizeAdmin, updateBook);
-router.delete("/delete-Book/:id", authenticate, authorizeAdmin, deleteBook);
+router.put("/update-Book/:id", authenticate, authorizeAdmin, checkId, updateBook);
+router.delete("/delete-Book/:id", authenticate, authorizeAdmin, checkId, deleteBook);
 router.delete("/delete-comment", authenticate, authorizeAdmin, deleteComment);
 
 export default router;
