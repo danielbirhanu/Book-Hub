@@ -1,0 +1,23 @@
+{
+  "name": "@book-hub/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "deploy": "wrangler deploy",
+    "dev": "npm run build --workspace @book-hub/web && wrangler dev",
+    "test": "vitest run",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "@book-hub/contracts": "*",
+    "@book-hub/database": "*",
+    "hono": "^4.9.6"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250823.0",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.33.1"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "book-hub",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-31",
+  "observability": {
+    "enabled": true,
+  },
+  "assets": {
+    "directory": "../web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"],
+  },
+  "vars": {
+    "ENVIRONMENT": "local",
+  },
+  // D1 and R2 bindings will be added after local schemas are validated.
+  // Production resource IDs must never be guessed or committed as secrets.
+}

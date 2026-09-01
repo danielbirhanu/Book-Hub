@@ -1,0 +1,8 @@
+node_modules
+dist
+.wrangler
+coverage
+frontend
+backend
+package-lock.json
+
