@@ -4,6 +4,7 @@
     { "path": "./apps/web" },
     { "path": "./apps/worker" },
     { "path": "./packages/contracts" },
-    { "path": "./packages/database" }
+    { "path": "./packages/database" },
+    { "path": "./tsconfig.e2e.json" }
   ]
 }

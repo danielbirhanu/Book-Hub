@@ -32,8 +32,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install browser runtime
+        run: npx playwright install --with-deps chromium
+
       - name: Audit production dependencies
         run: npm audit --omit=dev
 
       - name: Run quality gates
         run: npm run check
+
+      - name: Run browser tests
+        run: npm run test:e2e
