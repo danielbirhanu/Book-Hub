@@ -1,9 +1,75 @@
 import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 
-import { bookGenres, books, genres } from "./schema";
+import { bookGenres, books, genres, sessions, users } from "./schema";
 
 const db = (database: D1Database) => drizzle(database);
+
+export async function findUserByEmail(database: D1Database, email: string) {
+  const [user] = await db(database)
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1)
+    .all();
+  return user ?? null;
+}
+
+export async function findUserBySession(
+  database: D1Database,
+  tokenHash: string,
+  now: string
+) {
+  const [row] = await db(database)
+    .select({ user: users, session: sessions })
+    .from(sessions)
+    .innerJoin(users, eq(sessions.userId, users.id))
+    .where(
+      and(
+        eq(sessions.tokenHash, tokenHash),
+        sql`${sessions.expiresAt} > ${now}`
+      )
+    )
+    .limit(1)
+    .all();
+  return row ?? null;
+}
+
+export async function createUser(
+  database: D1Database,
+  input: {
+    id: string;
+    username: string;
+    email: string;
+    passwordHash: string;
+    createdAt: string;
+    updatedAt: string;
+  }
+) {
+  const [user] = await db(database)
+    .insert(users)
+    .values({ ...input, isAdmin: false })
+    .returning();
+  return user;
+}
+
+export async function createSession(
+  database: D1Database,
+  input: {
+    id: string;
+    userId: string;
+    tokenHash: string;
+    expiresAt: string;
+    createdAt: string;
+    lastUsedAt: string;
+  }
+) {
+  await db(database).insert(sessions).values(input);
+}
+
+export async function deleteSession(database: D1Database, tokenHash: string) {
+  await db(database).delete(sessions).where(eq(sessions.tokenHash, tokenHash));
+}
 export interface BookListOptions {
   genre?: string;
   limit: number;

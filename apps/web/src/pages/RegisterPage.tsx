@@ -1,11 +1,11 @@
-import { Eye, LockKeyhole } from "lucide-react";
+import { ArrowRight, UserRound } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { AppButton } from "../ui/Button";
 import { Field } from "../ui/Field";
 
-export function LoginPage() {
+export function RegisterPage() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -14,7 +14,7 @@ export function LoginPage() {
     setError("");
     setBusy(true);
     const data = Object.fromEntries(new FormData(event.currentTarget));
-    const response = await fetch("/api/v1/auth/login", {
+    const response = await fetch("/api/v1/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -25,49 +25,41 @@ export function LoginPage() {
       const payload = (await response.json()) as {
         error?: { message?: string };
       };
-      setError(payload.error?.message ?? "Invalid email or password.");
+      setError(payload.error?.message ?? "Unable to create account.");
       return;
     }
     void navigate("/my-books");
   }
   return (
     <div className="auth-form-wrap">
-      <p className="eyebrow">Welcome back</p>
-      <h1>Continue your reading life.</h1>
+      <p className="eyebrow">Start your library</p>
+      <h1>Make room for better recommendations.</h1>
       <p className="auth-intro">
-        Sign in to update your shelves and join the conversation.
+        Create an account to keep your shelves, ratings, and reviews in one
+        place.
       </p>
       <form className="auth-form" onSubmit={(event) => void submit(event)}>
+        <Field
+          autoComplete="name"
+          label="Display name"
+          name="username"
+          required
+        />
         <Field
           autoComplete="email"
           label="Email address"
           name="email"
+          required
           type="email"
         />
-        <div className="password-field-wrap">
-          <Field
-            autoComplete="current-password"
-            label="Password"
-            name="password"
-            type="password"
-          />
-          <button
-            aria-label="Show password"
-            className="password-toggle"
-            type="button"
-          >
-            <Eye aria-hidden="true" size={18} />
-          </button>
-        </div>
-        <div className="form-row">
-          <label className="check-control">
-            <input name="remember" type="checkbox" />
-            <span>Remember me</span>
-          </label>
-          <Link className="inline-link" to="/forgot-password">
-            Forgot password?
-          </Link>
-        </div>
+        <Field
+          autoComplete="new-password"
+          label="Password"
+          name="password"
+          required
+          type="password"
+          hint="Use at least 8 characters."
+        />
         {error ? (
           <p className="form-error" role="alert">
             {error}
@@ -75,15 +67,16 @@ export function LoginPage() {
         ) : null}
         <AppButton
           disabled={busy}
-          icon={<LockKeyhole aria-hidden="true" size={18} />}
+          icon={<UserRound aria-hidden="true" size={18} />}
           size="large"
           type="submit"
         >
-          {busy ? "Signing in..." : "Sign in"}
+          {busy ? "Creating account..." : "Create account"}{" "}
+          <ArrowRight aria-hidden="true" size={18} />
         </AppButton>
       </form>
       <p className="auth-switch">
-        New to Book Hub? <Link to="/register">Create an account</Link>
+        Already a member? <Link to="/login">Sign in</Link>
       </p>
     </div>
   );

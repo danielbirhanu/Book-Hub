@@ -25,6 +25,24 @@ export const users = sqliteTable(
   (table) => [uniqueIndex("users_email_idx").on(table.email)]
 );
 
+export const sessions = sqliteTable(
+  "sessions",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull(),
+    expiresAt: text("expires_at").notNull(),
+    createdAt: text("created_at").notNull(),
+    lastUsedAt: text("last_used_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("sessions_token_hash_idx").on(table.tokenHash),
+    index("sessions_user_idx").on(table.userId),
+  ]
+);
+
 export const genres = sqliteTable(
   "genres",
   {

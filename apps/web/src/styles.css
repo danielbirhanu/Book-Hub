@@ -898,6 +898,16 @@ input:focus-visible {
   color: var(--critical);
 }
 
+.form-error {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #e9bcbc;
+  border-radius: 5px;
+  background: #fff1f1;
+  color: var(--critical);
+  font-size: 13px;
+}
+
 .password-field-wrap {
   position: relative;
 }

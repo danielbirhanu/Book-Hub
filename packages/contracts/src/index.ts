@@ -35,3 +35,21 @@ export const bookListQuerySchema = z.object({
 });
 
 export type BookListQuery = z.infer<typeof bookListQuerySchema>;
+
+export const registrationSchema = z.object({
+  username: z.string().trim().min(2).max(50),
+  email: z
+    .string()
+    .trim()
+    .email()
+    .transform((value) => value.toLowerCase()),
+  password: z.string().min(8).max(128),
+});
+export const loginSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email()
+    .transform((value) => value.toLowerCase()),
+  password: z.string().min(1).max(128),
+});
