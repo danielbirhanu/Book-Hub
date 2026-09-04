@@ -7,6 +7,8 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc -b --pretty false"
   },
@@ -15,6 +17,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250823.0",
+    "drizzle-kit": "^0.31.10",
     "vitest": "^3.2.4"
   }
 }

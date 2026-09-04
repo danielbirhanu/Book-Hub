@@ -4,6 +4,8 @@ import { AccountLayout } from "../layouts/AccountLayout";
 import { AdminLayout } from "../layouts/AdminLayout";
 import { PublicLayout } from "../layouts/PublicLayout";
 import { AdminOverviewPage } from "../pages/AdminOverviewPage";
+import { BookDetailPage } from "../pages/BookDetailPage";
+import { BrowsePage } from "../pages/BrowsePage";
 import { HomePage } from "../pages/HomePage";
 import { LoginPage } from "../pages/LoginPage";
 import { NotFoundPage } from "../pages/NotFoundPage";
@@ -15,10 +17,8 @@ export function App() {
       <Route element={<PublicLayout />}>
         <Route index element={<HomePage />} />
         <Route path="discover" element={<PlaceholderPage title="Discover" />} />
-        <Route
-          path="browse"
-          element={<PlaceholderPage title="Browse books" />}
-        />
+        <Route path="browse" element={<BrowsePage />} />
+        <Route path="books/:slug" element={<BookDetailPage />} />
         <Route path="my-books" element={<PlaceholderPage title="My books" />} />
       </Route>
       <Route element={<AccountLayout />}>
