@@ -18,6 +18,7 @@ export const users = sqliteTable(
     id: text("id").primaryKey(),
     username: text("username").notNull(),
     email: text("email").notNull(),
+    emailVerifiedAt: text("email_verified_at"),
     passwordHash: text("password_hash").notNull(),
     isAdmin: integer("is_admin", { mode: "boolean" }).notNull().default(false),
     ...timestamps,
@@ -40,6 +41,25 @@ export const sessions = sqliteTable(
   (table) => [
     uniqueIndex("sessions_token_hash_idx").on(table.tokenHash),
     index("sessions_user_idx").on(table.userId),
+  ]
+);
+
+export const accountTokens = sqliteTable(
+  "account_tokens",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull(),
+    type: text("type", { enum: ["verification", "password-reset"] }).notNull(),
+    expiresAt: text("expires_at").notNull(),
+    consumedAt: text("consumed_at"),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("account_tokens_hash_idx").on(table.tokenHash),
+    index("account_tokens_user_idx").on(table.userId, table.type),
   ]
 );
 

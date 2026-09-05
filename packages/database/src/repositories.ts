@@ -2,6 +2,7 @@ import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 
 import {
+  accountTokens,
   bookGenres,
   books,
   genres,
@@ -59,6 +60,80 @@ export async function createUser(
     .values({ ...input, isAdmin: false })
     .returning();
   return user;
+}
+
+export async function createAccountToken(
+  database: D1Database,
+  input: {
+    id: string;
+    userId: string;
+    tokenHash: string;
+    type: "verification" | "password-reset";
+    expiresAt: string;
+    createdAt: string;
+  }
+) {
+  await db(database).insert(accountTokens).values(input);
+}
+export async function findAccountToken(
+  database: D1Database,
+  tokenHash: string,
+  type: "verification" | "password-reset",
+  now: string
+) {
+  const [token] = await db(database)
+    .select()
+    .from(accountTokens)
+    .where(
+      and(
+        eq(accountTokens.tokenHash, tokenHash),
+        eq(accountTokens.type, type),
+        sql`${accountTokens.expiresAt} > ${now}`,
+        sql`${accountTokens.consumedAt} is null`
+      )
+    )
+    .limit(1)
+    .all();
+  return token ?? null;
+}
+export async function consumeAccountToken(
+  database: D1Database,
+  id: string,
+  userId: string,
+  type: "verification" | "password-reset",
+  now: string
+) {
+  await db(database)
+    .update(accountTokens)
+    .set({ consumedAt: now })
+    .where(
+      and(
+        eq(accountTokens.id, id),
+        eq(accountTokens.userId, userId),
+        eq(accountTokens.type, type)
+      )
+    );
+}
+export async function markEmailVerified(
+  database: D1Database,
+  userId: string,
+  now: string
+) {
+  await db(database)
+    .update(users)
+    .set({ emailVerifiedAt: now, updatedAt: now })
+    .where(eq(users.id, userId));
+}
+export async function updateUserPassword(
+  database: D1Database,
+  userId: string,
+  passwordHash: string,
+  now: string
+) {
+  await db(database)
+    .update(users)
+    .set({ passwordHash, updatedAt: now })
+    .where(eq(users.id, userId));
 }
 
 export async function createSession(

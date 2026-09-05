@@ -27,6 +27,7 @@ import {
   revokeSession,
   verifyPassword,
 } from "./auth";
+import { sendEmail } from "./email";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -87,6 +88,11 @@ app.post("/api/v1/auth/register", async (context) => {
       500
     );
   const session = await issueSession(context.env.DB, user.id);
+  void sendEmail(context.env, {
+    to: user.email,
+    subject: "Welcome to Book Hub",
+    html: `<p>Welcome to Book Hub, ${user.username}.</p>`,
+  }).catch((error) => console.error("Welcome email failed", error));
   context.header("Set-Cookie", sessionCookie(session.token, session.expires));
   return context.json(publicUser(user), 201);
 });
