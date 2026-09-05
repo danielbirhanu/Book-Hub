@@ -53,3 +53,12 @@ export const loginSchema = z.object({
     .transform((value) => value.toLowerCase()),
   password: z.string().min(1).max(128),
 });
+
+export const reviewSchema = z.object({
+  rating: z.coerce.number().int().min(1).max(5),
+  body: z.string().trim().min(10).max(5000),
+  spoiler: z.boolean().default(false),
+});
+export const readingStatusSchema = z.object({
+  status: z.enum(["want-to-read", "reading", "read"]),
+});

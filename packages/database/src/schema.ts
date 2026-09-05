@@ -145,5 +145,28 @@ export const reviews = sqliteTable(
   ]
 );
 
+export const readingStatuses = sqliteTable(
+  "reading_statuses",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    bookId: text("book_id")
+      .notNull()
+      .references(() => books.id, { onDelete: "cascade" }),
+    status: text("status", {
+      enum: ["want-to-read", "reading", "read"],
+    }).notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("reading_statuses_user_book_idx").on(
+      table.userId,
+      table.bookId
+    ),
+    index("reading_statuses_user_idx").on(table.userId, table.updatedAt),
+  ]
+);
+
 export type Book = typeof books.$inferSelect;
 export type Genre = typeof genres.$inferSelect;

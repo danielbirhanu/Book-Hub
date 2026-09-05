@@ -1,7 +1,15 @@
 import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 
-import { bookGenres, books, genres, sessions, users } from "./schema";
+import {
+  bookGenres,
+  books,
+  genres,
+  readingStatuses,
+  reviews,
+  sessions,
+  users,
+} from "./schema";
 
 const db = (database: D1Database) => drizzle(database);
 
@@ -136,5 +144,114 @@ export async function getBook(database: D1Database, idOrSlug: string) {
     .innerJoin(genres, eq(bookGenres.genreId, genres.id))
     .where(eq(bookGenres.bookId, book.id))
     .all();
-  return { ...book, genres: bookGenreRows };
+  const reviewRows = await db(database)
+    .select({
+      id: reviews.id,
+      rating: reviews.rating,
+      body: reviews.body,
+      spoiler: reviews.spoiler,
+      createdAt: reviews.createdAt,
+      username: users.username,
+      userId: reviews.userId,
+    })
+    .from(reviews)
+    .innerJoin(users, eq(reviews.userId, users.id))
+    .where(and(eq(reviews.bookId, book.id), eq(reviews.status, "published")))
+    .orderBy(desc(reviews.createdAt))
+    .all();
+  return { ...book, genres: bookGenreRows, reviews: reviewRows };
+}
+
+export async function upsertReview(
+  database: D1Database,
+  input: {
+    id: string;
+    bookId: string;
+    userId: string;
+    rating: number;
+    body: string;
+    spoiler: boolean;
+    createdAt: string;
+    updatedAt: string;
+  }
+) {
+  const existing = await db(database)
+    .select({ id: reviews.id })
+    .from(reviews)
+    .where(
+      and(eq(reviews.bookId, input.bookId), eq(reviews.userId, input.userId))
+    )
+    .limit(1)
+    .all();
+  if (existing[0]) {
+    const [review] = await db(database)
+      .update(reviews)
+      .set({
+        rating: input.rating,
+        body: input.body,
+        spoiler: input.spoiler,
+        updatedAt: input.updatedAt,
+        status: "published",
+      })
+      .where(eq(reviews.id, existing[0].id))
+      .returning();
+    return review;
+  }
+  const [review] = await db(database).insert(reviews).values(input).returning();
+  return review;
+}
+
+export async function deleteReview(
+  database: D1Database,
+  bookId: string,
+  userId: string
+) {
+  await db(database)
+    .delete(reviews)
+    .where(and(eq(reviews.bookId, bookId), eq(reviews.userId, userId)));
+}
+
+export async function recalculateBookRating(
+  database: D1Database,
+  bookId: string
+) {
+  await db(database)
+    .update(books)
+    .set({
+      ratingAverage: sql`coalesce((select avg(rating) from reviews where book_id = ${bookId} and status = 'published'), 0)`,
+      ratingCount: sql`(select count(*) from reviews where book_id = ${bookId} and status = 'published')`,
+    })
+    .where(eq(books.id, bookId));
+}
+
+export async function listReadingStatuses(
+  database: D1Database,
+  userId: string
+) {
+  return db(database)
+    .select({ status: readingStatuses.status, book: books })
+    .from(readingStatuses)
+    .innerJoin(books, eq(readingStatuses.bookId, books.id))
+    .where(eq(readingStatuses.userId, userId))
+    .orderBy(desc(readingStatuses.updatedAt))
+    .all();
+}
+
+export async function setReadingStatus(
+  database: D1Database,
+  input: {
+    userId: string;
+    bookId: string;
+    status: "want-to-read" | "reading" | "read";
+    createdAt: string;
+    updatedAt: string;
+  }
+) {
+  await db(database)
+    .insert(readingStatuses)
+    .values(input)
+    .onConflictDoUpdate({
+      target: [readingStatuses.userId, readingStatuses.bookId],
+      set: { status: input.status, updatedAt: input.updatedAt },
+    });
 }

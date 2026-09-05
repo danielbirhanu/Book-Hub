@@ -11,6 +11,7 @@ import { LoginPage } from "../pages/LoginPage";
 import { RegisterPage } from "../pages/RegisterPage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { PlaceholderPage } from "../pages/PlaceholderPage";
+import { MyBooksPage } from "../pages/MyBooksPage";
 
 export function App() {
   return (
@@ -20,7 +21,7 @@ export function App() {
         <Route path="discover" element={<PlaceholderPage title="Discover" />} />
         <Route path="browse" element={<BrowsePage />} />
         <Route path="books/:slug" element={<BookDetailPage />} />
-        <Route path="my-books" element={<PlaceholderPage title="My books" />} />
+        <Route path="my-books" element={<MyBooksPage />} />
       </Route>
       <Route element={<AccountLayout />}>
         <Route path="login" element={<LoginPage />} />
