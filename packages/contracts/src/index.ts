@@ -54,6 +54,18 @@ export const loginSchema = z.object({
   password: z.string().min(1).max(128),
 });
 
+export const passwordResetRequestSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email()
+    .transform((value) => value.toLowerCase()),
+});
+export const passwordResetSchema = z.object({
+  token: z.string().min(20),
+  password: z.string().min(8).max(128),
+});
+
 export const reviewSchema = z.object({
   rating: z.coerce.number().int().min(1).max(5),
   body: z.string().trim().min(10).max(5000),

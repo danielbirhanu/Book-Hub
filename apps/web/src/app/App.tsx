@@ -12,6 +12,8 @@ import { RegisterPage } from "../pages/RegisterPage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { PlaceholderPage } from "../pages/PlaceholderPage";
 import { MyBooksPage } from "../pages/MyBooksPage";
+import { ForgotPasswordPage } from "../pages/ForgotPasswordPage";
+import { ResetPasswordPage } from "../pages/ResetPasswordPage";
 
 export function App() {
   return (
@@ -26,6 +28,8 @@ export function App() {
       <Route element={<AccountLayout />}>
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
       </Route>
       <Route path="admin" element={<AdminLayout />}>
         <Route index element={<AdminOverviewPage />} />

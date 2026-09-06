@@ -1,19 +1,26 @@
 import {
   bookListQuerySchema,
   healthResponseSchema,
+  passwordResetRequestSchema,
+  passwordResetSchema,
   readingStatusSchema,
   reviewSchema,
 } from "@book-hub/contracts";
 import {
   createUser,
+  createAccountToken,
+  consumeAccountToken,
   deleteReview,
   findUserByEmail,
+  findAccountToken,
   getBook,
   listBooks,
   listGenres,
   listReadingStatuses,
+  markEmailVerified,
   recalculateBookRating,
   setReadingStatus,
+  updateUserPassword,
   upsertReview,
 } from "@book-hub/database";
 import { Hono } from "hono";
@@ -21,10 +28,12 @@ import { secureHeaders } from "hono/secure-headers";
 import { loginSchema, registrationSchema } from "@book-hub/contracts";
 import {
   currentUser,
+  digest,
   hashPassword,
   issueSession,
   publicUser,
   revokeSession,
+  randomToken,
   verifyPassword,
 } from "./auth";
 import { sendEmail } from "./email";
@@ -140,6 +149,111 @@ app.get("/api/v1/auth/me", async (context) => {
       401
     );
   return context.json(publicUser(user));
+});
+
+app.post("/api/v1/auth/verify-email", async (context) => {
+  const token = new URL(context.req.url).searchParams.get("token") ?? "";
+  const record = await findAccountToken(
+    context.env.DB,
+    await digest(token),
+    "verification",
+    new Date().toISOString()
+  );
+  if (!record)
+    return context.json(
+      {
+        error: {
+          code: "INVALID_TOKEN",
+          message: "This verification link is invalid or expired.",
+        },
+      },
+      400
+    );
+  const now = new Date().toISOString();
+  await markEmailVerified(context.env.DB, record.userId, now);
+  await consumeAccountToken(
+    context.env.DB,
+    record.id,
+    record.userId,
+    "verification",
+    now
+  );
+  return context.json({ message: "Email verified" });
+});
+
+app.post("/api/v1/auth/forgot-password", async (context) => {
+  const parsed = passwordResetRequestSchema.safeParse(await context.req.json());
+  if (!parsed.success)
+    return context.json({
+      message: "If an account exists, a reset link will be sent.",
+    });
+  const user = await findUserByEmail(context.env.DB, parsed.data.email);
+  if (user) {
+    const token = randomToken();
+    const now = new Date();
+    await createAccountToken(context.env.DB, {
+      id: crypto.randomUUID(),
+      userId: user.id,
+      tokenHash: await digest(token),
+      type: "password-reset",
+      expiresAt: new Date(now.getTime() + 60 * 60 * 1000).toISOString(),
+      createdAt: now.toISOString(),
+    });
+    const link = `${context.env.APP_URL ?? new URL(context.req.url).origin}/reset-password?token=${encodeURIComponent(token)}`;
+    void sendEmail(context.env, {
+      to: user.email,
+      subject: "Reset your Book Hub password",
+      html: `<p>Reset your password within one hour: <a href="${link}">${link}</a></p>`,
+    }).catch((error) => console.error("Reset email failed", error));
+  }
+  return context.json({
+    message: "If an account exists, a reset link will be sent.",
+  });
+});
+
+app.post("/api/v1/auth/reset-password", async (context) => {
+  const parsed = passwordResetSchema.safeParse(await context.req.json());
+  if (!parsed.success)
+    return context.json(
+      {
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Provide a valid token and password.",
+        },
+      },
+      400
+    );
+  const record = await findAccountToken(
+    context.env.DB,
+    await digest(parsed.data.token),
+    "password-reset",
+    new Date().toISOString()
+  );
+  if (!record)
+    return context.json(
+      {
+        error: {
+          code: "INVALID_TOKEN",
+          message: "This reset link is invalid or expired.",
+        },
+      },
+      400
+    );
+  const now = new Date().toISOString();
+  await updateUserPassword(
+    context.env.DB,
+    record.userId,
+    await hashPassword(parsed.data.password),
+    now
+  );
+  await consumeAccountToken(
+    context.env.DB,
+    record.id,
+    record.userId,
+    "password-reset",
+    now
+  );
+  return context.json({ message: "Password updated" });
 });
 
 app.get("/api/v1/genres", async (context) =>
