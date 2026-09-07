@@ -32,9 +32,7 @@ describe("App", () => {
   it("renders the administration layout and overview", () => {
     const html = renderPath("/admin");
 
-    expect(html).toContain("Community overview");
-    expect(html).toContain("Recent reports");
-    expect(html).toContain("Administration");
+    expect(html).toContain("Checking administrator access...");
   });
 
   it("renders the not-found state outside an application shell", () => {

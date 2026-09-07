@@ -9,7 +9,8 @@ import {
   Search,
   Users,
 } from "lucide-react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 
 const adminLinks = [
   { icon: Gauge, label: "Overview", to: "/admin" },
@@ -20,6 +21,49 @@ const adminLinks = [
 ];
 
 export function AdminLayout() {
+  const navigate = useNavigate();
+  const [user, setUser] = useState<{
+    username: string;
+    isAdmin: boolean;
+  } | null>(null);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    void fetch("/api/v1/auth/me", { credentials: "include" })
+      .then(async (response) =>
+        response.ok
+          ? ((await response.json()) as { username: string; isAdmin: boolean })
+          : null
+      )
+      .then(setUser)
+      .finally(() => setReady(true));
+  }, []);
+  async function signOut() {
+    await fetch("/api/v1/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+    void navigate("/login");
+  }
+  if (!ready)
+    return (
+      <main className="catalog-state">Checking administrator access...</main>
+    );
+  if (!user?.isAdmin)
+    return (
+      <main className="placeholder-page">
+        <p className="eyebrow">Restricted area</p>
+        <h1>Administrator access required.</h1>
+        <Link className="inline-link" to="/login">
+          Sign in with an administrator account
+        </Link>
+      </main>
+    );
+  const initials = user.username
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
   return (
     <div className="admin-shell">
       <aside className="admin-sidebar">
@@ -42,7 +86,7 @@ export function AdminLayout() {
           <Link to="/">
             <ChevronLeft aria-hidden="true" size={18} /> Public site
           </Link>
-          <button type="button">
+          <button onClick={() => void signOut()} type="button">
             <LogOut aria-hidden="true" size={18} /> Sign out
           </button>
         </div>
@@ -53,10 +97,13 @@ export function AdminLayout() {
             <Search aria-hidden="true" size={18} />
             <span>Search administration</span>
           </div>
-          <div className="admin-user" aria-label="Signed in as Amara Tesfaye">
-            <span>AT</span>
+          <div
+            className="admin-user"
+            aria-label={`Signed in as ${user.username}`}
+          >
+            <span>{initials}</span>
             <div>
-              <strong>Amara Tesfaye</strong>
+              <strong>{user.username}</strong>
               <small>Administrator</small>
             </div>
           </div>

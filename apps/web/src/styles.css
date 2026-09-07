@@ -1149,6 +1149,34 @@ input:focus-visible {
   background: var(--surface);
 }
 
+.moderation-list article {
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.moderation-list article:last-child {
+  border-bottom: 0;
+}
+.moderation-meta,
+.moderation-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.moderation-meta span:last-child {
+  color: var(--muted);
+  font-size: 13px;
+}
+.moderation-list article > p {
+  margin: 16px 0;
+  line-height: 1.6;
+}
+.moderation-actions .button {
+  min-height: 36px;
+  padding-inline: 13px;
+  font-size: 13px;
+}
+
 .panel-heading {
   justify-content: space-between;
   padding: 22px 24px;
