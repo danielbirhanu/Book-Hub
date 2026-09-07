@@ -15,11 +15,13 @@ import {
   findAccountToken,
   getBook,
   listBooks,
+  listAllReviews,
   listGenres,
   listReadingStatuses,
   markEmailVerified,
   recalculateBookRating,
   setReadingStatus,
+  updateReviewStatus,
   updateUserPassword,
   upsertReview,
 } from "@book-hub/database";
@@ -57,6 +59,11 @@ const sessionCookie = (token: string, expires: Date) =>
   `book_hub_session=${token}; Path=/; HttpOnly; SameSite=Lax; Secure; Expires=${expires.toUTCString()}`;
 const clearSessionCookie =
   "book_hub_session=; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=0";
+
+async function requireAdmin(context: { env: Env; req: { raw: Request } }) {
+  const user = await currentUser(context.env.DB, context.req.raw);
+  return user?.isAdmin ? user : null;
+}
 
 app.post("/api/v1/auth/register", async (context) => {
   const parsed = registrationSchema.safeParse(await context.req.json());
@@ -149,6 +156,51 @@ app.get("/api/v1/auth/me", async (context) => {
       401
     );
   return context.json(publicUser(user));
+});
+
+app.get("/api/v1/admin/reviews", async (context) => {
+  if (!(await requireAdmin(context)))
+    return context.json(
+      {
+        error: { code: "FORBIDDEN", message: "Administrator access required." },
+      },
+      403
+    );
+  return context.json(await listAllReviews(context.env.DB));
+});
+
+app.patch("/api/v1/admin/reviews/:id", async (context) => {
+  if (!(await requireAdmin(context)))
+    return context.json(
+      {
+        error: { code: "FORBIDDEN", message: "Administrator access required." },
+      },
+      403
+    );
+  const payload = (await context.req.json()) as { status?: string };
+  if (
+    payload.status !== "published" &&
+    payload.status !== "hidden" &&
+    payload.status !== "removed"
+  )
+    return context.json(
+      {
+        error: { code: "VALIDATION_ERROR", message: "Invalid review status." },
+      },
+      400
+    );
+  const review = await updateReviewStatus(
+    context.env.DB,
+    context.req.param("id"),
+    payload.status
+  );
+  if (!review)
+    return context.json(
+      { error: { code: "NOT_FOUND", message: "Review not found." } },
+      404
+    );
+  await recalculateBookRating(context.env.DB, review.bookId);
+  return context.json(review);
 });
 
 app.post("/api/v1/auth/verify-email", async (context) => {

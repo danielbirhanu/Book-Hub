@@ -286,6 +286,39 @@ export async function deleteReview(
     .where(and(eq(reviews.bookId, bookId), eq(reviews.userId, userId)));
 }
 
+export async function listAllReviews(database: D1Database) {
+  return db(database)
+    .select({
+      id: reviews.id,
+      bookId: reviews.bookId,
+      bookTitle: books.title,
+      userId: reviews.userId,
+      username: users.username,
+      rating: reviews.rating,
+      body: reviews.body,
+      status: reviews.status,
+      createdAt: reviews.createdAt,
+    })
+    .from(reviews)
+    .innerJoin(books, eq(reviews.bookId, books.id))
+    .innerJoin(users, eq(reviews.userId, users.id))
+    .orderBy(desc(reviews.createdAt))
+    .all();
+}
+
+export async function updateReviewStatus(
+  database: D1Database,
+  id: string,
+  status: "published" | "hidden" | "removed"
+) {
+  const [review] = await db(database)
+    .update(reviews)
+    .set({ status, updatedAt: new Date().toISOString() })
+    .where(eq(reviews.id, id))
+    .returning();
+  return review ?? null;
+}
+
 export async function recalculateBookRating(
   database: D1Database,
   bookId: string
