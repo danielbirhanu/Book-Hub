@@ -74,3 +74,16 @@ export const reviewSchema = z.object({
 export const readingStatusSchema = z.object({
   status: z.enum(["want-to-read", "reading", "read"]),
 });
+export const adminBookSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  slug: z
+    .string()
+    .trim()
+    .min(1)
+    .max(220)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  summary: z.string().trim().min(10).max(10000),
+  publishedYear: z.coerce.number().int().min(0).max(3000).nullable().optional(),
+  isbn: z.string().trim().max(32).nullable().optional(),
+  status: z.enum(["published", "draft", "archived"]).default("draft"),
+});

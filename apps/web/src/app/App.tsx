@@ -15,6 +15,7 @@ import { MyBooksPage } from "../pages/MyBooksPage";
 import { ForgotPasswordPage } from "../pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "../pages/ResetPasswordPage";
 import { AdminReviewsPage } from "../pages/AdminReviewsPage";
+import { AdminBooksPage } from "../pages/AdminBooksPage";
 
 export function App() {
   return (
@@ -34,10 +35,7 @@ export function App() {
       </Route>
       <Route path="admin" element={<AdminLayout />}>
         <Route index element={<AdminOverviewPage />} />
-        <Route
-          path="books"
-          element={<PlaceholderPage title="Catalog" compact />}
-        />
+        <Route path="books" element={<AdminBooksPage />} />
         <Route path="reviews" element={<AdminReviewsPage />} />
         <Route
           path="reports"

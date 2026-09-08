@@ -1,5 +1,6 @@
 import {
   bookListQuerySchema,
+  adminBookSchema,
   healthResponseSchema,
   passwordResetRequestSchema,
   passwordResetSchema,
@@ -16,12 +17,15 @@ import {
   getBook,
   listBooks,
   listAllReviews,
+  listAdminBooks,
   listGenres,
   listReadingStatuses,
   markEmailVerified,
   recalculateBookRating,
   setReadingStatus,
   updateReviewStatus,
+  createBook,
+  updateBook,
   updateUserPassword,
   upsertReview,
 } from "@book-hub/database";
@@ -167,6 +171,79 @@ app.get("/api/v1/admin/reviews", async (context) => {
       403
     );
   return context.json(await listAllReviews(context.env.DB));
+});
+app.get("/api/v1/admin/books", async (context) => {
+  if (!(await requireAdmin(context)))
+    return context.json(
+      {
+        error: { code: "FORBIDDEN", message: "Administrator access required." },
+      },
+      403
+    );
+  return context.json(await listAdminBooks(context.env.DB));
+});
+app.post("/api/v1/admin/books", async (context) => {
+  if (!(await requireAdmin(context)))
+    return context.json(
+      {
+        error: { code: "FORBIDDEN", message: "Administrator access required." },
+      },
+      403
+    );
+  const parsed = adminBookSchema.safeParse(await context.req.json());
+  if (!parsed.success)
+    return context.json(
+      { error: { code: "VALIDATION_ERROR", message: "Invalid book details." } },
+      400
+    );
+  const now = new Date().toISOString();
+  try {
+    return context.json(
+      await createBook(context.env.DB, {
+        id: crypto.randomUUID(),
+        ...parsed.data,
+        createdAt: now,
+        updatedAt: now,
+      }),
+      201
+    );
+  } catch {
+    return context.json(
+      {
+        error: {
+          code: "CONFLICT",
+          message: "A book with that slug already exists.",
+        },
+      },
+      409
+    );
+  }
+});
+app.patch("/api/v1/admin/books/:id", async (context) => {
+  if (!(await requireAdmin(context)))
+    return context.json(
+      {
+        error: { code: "FORBIDDEN", message: "Administrator access required." },
+      },
+      403
+    );
+  const parsed = adminBookSchema.partial().safeParse(await context.req.json());
+  if (!parsed.success)
+    return context.json(
+      { error: { code: "VALIDATION_ERROR", message: "Invalid book details." } },
+      400
+    );
+  const book = await updateBook(
+    context.env.DB,
+    context.req.param("id"),
+    parsed.data
+  );
+  if (!book)
+    return context.json(
+      { error: { code: "NOT_FOUND", message: "Book not found." } },
+      404
+    );
+  return context.json(book);
 });
 
 app.patch("/api/v1/admin/reviews/:id", async (context) => {

@@ -164,6 +164,36 @@ export interface BookListOptions {
 export async function listGenres(database: D1Database) {
   return db(database).select().from(genres).orderBy(asc(genres.name)).all();
 }
+export async function listAdminBooks(database: D1Database) {
+  return db(database).select().from(books).orderBy(desc(books.updatedAt)).all();
+}
+type AdminBookInput = {
+  title: string;
+  slug: string;
+  summary: string;
+  publishedYear?: number | null;
+  isbn?: string | null;
+  status: "published" | "draft" | "archived";
+};
+export async function createBook(
+  database: D1Database,
+  input: AdminBookInput & { id: string; createdAt: string; updatedAt: string }
+) {
+  const [book] = await db(database).insert(books).values(input).returning();
+  return book;
+}
+export async function updateBook(
+  database: D1Database,
+  id: string,
+  input: Partial<AdminBookInput>
+) {
+  const [book] = await db(database)
+    .update(books)
+    .set({ ...input, updatedAt: new Date().toISOString() })
+    .where(eq(books.id, id))
+    .returning();
+  return book ?? null;
+}
 
 export async function listBooks(
   database: D1Database,

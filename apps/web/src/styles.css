@@ -1176,6 +1176,65 @@ input:focus-visible {
   padding-inline: 13px;
   font-size: 13px;
 }
+.catalog-admin-grid {
+  display: grid;
+  grid-template-columns: minmax(290px, 0.65fr) minmax(0, 1.35fr);
+  gap: 24px;
+  align-items: start;
+}
+.catalog-form {
+  display: grid;
+  gap: 15px;
+  padding: 24px;
+}
+.catalog-form h2 {
+  margin: 0 0 5px;
+  font-family: inherit;
+  font-size: 19px;
+}
+.catalog-form label {
+  display: grid;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.catalog-form input,
+.catalog-form textarea,
+.catalog-form select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  font: inherit;
+}
+.catalog-form textarea {
+  min-height: 130px;
+  resize: vertical;
+}
+.catalog-records article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.catalog-records article:last-child {
+  border-bottom: 0;
+}
+.catalog-records h3 {
+  margin: 8px 0 3px;
+  font-size: 15px;
+}
+.catalog-records small {
+  color: var(--muted);
+}
+@media (max-width: 900px) {
+  .catalog-admin-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 .panel-heading {
   justify-content: space-between;
