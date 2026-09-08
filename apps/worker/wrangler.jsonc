@@ -23,4 +23,10 @@
       "migrations_dir": "../../packages/database/migrations",
     },
   ],
+  "r2_buckets": [
+    {
+      "binding": "COVERS",
+      "bucket_name": "book-hub-covers",
+    },
+  ],
 }

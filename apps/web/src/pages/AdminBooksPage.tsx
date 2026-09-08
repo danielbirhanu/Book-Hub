@@ -7,6 +7,7 @@ type Book = {
   summary: string;
   status: "published" | "draft" | "archived";
   publishedYear: number | null;
+  coverKey: string | null;
 };
 const emptyBook = {
   title: "",
@@ -69,6 +70,31 @@ export function AdminBooksPage() {
       setBooks((items) =>
         items.map((book) => (book.id === id ? { ...book, status } : book))
       );
+  }
+  async function uploadCover(bookId: string, file: File) {
+    setMessage("");
+    const response = await fetch(`/api/v1/admin/books/${bookId}/cover`, {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": file.type },
+      body: file,
+    });
+    const payload = (await response.json()) as {
+      coverKey?: string;
+      error?: { message?: string };
+    };
+    if (!response.ok) {
+      setMessage(payload.error?.message ?? "Unable to upload cover.");
+      return;
+    }
+    setBooks((items) =>
+      items.map((book) =>
+        book.id === bookId
+          ? { ...book, coverKey: payload.coverKey ?? null }
+          : book
+      )
+    );
+    setMessage("Cover uploaded.");
   }
   return (
     <>
@@ -160,6 +186,17 @@ export function AdminBooksPage() {
                 </small>
               </div>
               <div className="moderation-actions">
+                <label className="button button-secondary cover-upload">
+                  Cover
+                  <input
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) void uploadCover(book.id, file);
+                    }}
+                    type="file"
+                  />
+                </label>
                 <button
                   className="button button-secondary"
                   onClick={() => void changeStatus(book.id, "draft")}

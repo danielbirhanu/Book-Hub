@@ -1230,6 +1230,16 @@ input:focus-visible {
 .catalog-records small {
   color: var(--muted);
 }
+.cover-upload {
+  cursor: pointer;
+}
+.cover-upload input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
 @media (max-width: 900px) {
   .catalog-admin-grid {
     grid-template-columns: 1fr;

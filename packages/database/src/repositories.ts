@@ -174,6 +174,7 @@ type AdminBookInput = {
   publishedYear?: number | null;
   isbn?: string | null;
   status: "published" | "draft" | "archived";
+  coverKey?: string | null;
 };
 export async function createBook(
   database: D1Database,

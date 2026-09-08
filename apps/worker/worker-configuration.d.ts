@@ -1,6 +1,7 @@
 interface Env {
   ASSETS: Fetcher;
   DB: D1Database;
+  COVERS: R2Bucket;
   ENVIRONMENT: "local" | "preview" | "staging" | "production";
   BREVO_API_KEY?: string;
   EMAIL_FROM?: string;

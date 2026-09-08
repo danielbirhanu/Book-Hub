@@ -246,6 +246,68 @@ app.patch("/api/v1/admin/books/:id", async (context) => {
   return context.json(book);
 });
 
+app.put("/api/v1/admin/books/:id/cover", async (context) => {
+  if (!(await requireAdmin(context)))
+    return context.json(
+      {
+        error: { code: "FORBIDDEN", message: "Administrator access required." },
+      },
+      403
+    );
+  const book = await getBook(context.env.DB, context.req.param("id"));
+  if (!book)
+    return context.json(
+      { error: { code: "NOT_FOUND", message: "Book not found." } },
+      404
+    );
+  const contentType = context.req.header("content-type") ?? "";
+  if (!/^image\/(jpeg|png|webp)$/.test(contentType))
+    return context.json(
+      {
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Only JPEG, PNG, and WebP covers are supported.",
+        },
+      },
+      400
+    );
+  const bytes = await context.req.arrayBuffer();
+  if (bytes.byteLength > 5 * 1024 * 1024)
+    return context.json(
+      {
+        error: {
+          code: "PAYLOAD_TOO_LARGE",
+          message: "Cover images must be 5 MB or smaller.",
+        },
+      },
+      413
+    );
+  const key = `covers/${book.id}/${crypto.randomUUID()}.${contentType.split("/")[1]}`;
+  await context.env.COVERS.put(key, bytes, {
+    httpMetadata: {
+      contentType,
+      cacheControl: "public, max-age=31536000, immutable",
+    },
+  });
+  await updateBook(context.env.DB, book.id, { coverKey: key });
+  if (book.coverKey) await context.env.COVERS.delete(book.coverKey);
+  return context.json({ coverKey: key, url: `/api/v1/covers/${key}` });
+});
+
+app.get("/api/v1/covers/:key{.+}", async (context) => {
+  const object = await context.env.COVERS.get(context.req.param("key"));
+  if (!object)
+    return context.json(
+      { error: { code: "NOT_FOUND", message: "Cover not found." } },
+      404
+    );
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+  headers.set("etag", object.httpEtag);
+  headers.set("cache-control", "public, max-age=31536000, immutable");
+  return new Response(object.body, { headers });
+});
+
 app.patch("/api/v1/admin/reviews/:id", async (context) => {
   if (!(await requireAdmin(context)))
     return context.json(
