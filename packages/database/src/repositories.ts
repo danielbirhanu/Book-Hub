@@ -186,7 +186,7 @@ export async function createBook(
 export async function updateBook(
   database: D1Database,
   id: string,
-  input: Partial<AdminBookInput> & Record<string, unknown>
+  input: Record<string, unknown>
 ) {
   const [book] = await db(database)
     .update(books)

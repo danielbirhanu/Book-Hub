@@ -10,6 +10,7 @@
     "deploy": "wrangler deploy",
     "dev": "npm run build --workspace @book-hub/web && wrangler dev",
     "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "typecheck": "tsc -b --pretty false"
   },
   "dependencies": {
@@ -19,7 +20,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250823.0",
-    "vitest": "^3.2.4",
+    "vitest": "^4.1.0",
     "wrangler": "^4.33.1"
   }
 }
