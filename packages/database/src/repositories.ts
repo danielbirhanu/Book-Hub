@@ -171,10 +171,10 @@ type AdminBookInput = {
   title: string;
   slug: string;
   summary: string;
-  publishedYear?: number | null;
-  isbn?: string | null;
+  publishedYear?: number | null | undefined;
+  isbn?: string | null | undefined;
   status: "published" | "draft" | "archived";
-  coverKey?: string | null;
+  coverKey?: string | null | undefined;
 };
 export async function createBook(
   database: D1Database,
@@ -186,7 +186,7 @@ export async function createBook(
 export async function updateBook(
   database: D1Database,
   id: string,
-  input: Partial<AdminBookInput>
+  input: Partial<AdminBookInput> & Record<string, unknown>
 ) {
   const [book] = await db(database)
     .update(books)
