@@ -16,13 +16,14 @@ import { ForgotPasswordPage } from "../pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "../pages/ResetPasswordPage";
 import { AdminReviewsPage } from "../pages/AdminReviewsPage";
 import { AdminBooksPage } from "../pages/AdminBooksPage";
+import { DiscoverPage } from "../pages/DiscoverPage";
 
 export function App() {
   return (
     <Routes>
       <Route element={<PublicLayout />}>
         <Route index element={<HomePage />} />
-        <Route path="discover" element={<PlaceholderPage title="Discover" />} />
+        <Route path="discover" element={<DiscoverPage />} />
         <Route path="browse" element={<BrowsePage />} />
         <Route path="books/:slug" element={<BookDetailPage />} />
         <Route path="my-books" element={<MyBooksPage />} />

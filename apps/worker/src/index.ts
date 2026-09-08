@@ -63,6 +63,7 @@ const sessionCookie = (token: string, expires: Date) =>
   `book_hub_session=${token}; Path=/; HttpOnly; SameSite=Lax; Secure; Expires=${expires.toUTCString()}`;
 const clearSessionCookie =
   "book_hub_session=; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=0";
+const coverUrl = (key: string | null) => (key ? `/api/v1/covers/${key}` : null);
 
 async function requireAdmin(context: { env: Env; req: { raw: Request } }) {
   const user = await currentUser(context.env.DB, context.req.raw);
@@ -475,6 +476,10 @@ app.get("/api/v1/books", async (context) => {
   });
   return context.json({
     ...result,
+    items: result.items.map((book) => ({
+      ...book,
+      coverUrl: coverUrl(book.coverKey),
+    })),
     page,
     limit,
     totalPages: Math.ceil(result.total / limit),
@@ -488,7 +493,7 @@ app.get("/api/v1/books/:idOrSlug", async (context) => {
       { error: { code: "NOT_FOUND", message: "Book not found" } },
       404
     );
-  return context.json(book);
+  return context.json({ ...book, coverUrl: coverUrl(book.coverKey) });
 });
 
 app.post("/api/v1/books/:idOrSlug/reviews", async (context) => {

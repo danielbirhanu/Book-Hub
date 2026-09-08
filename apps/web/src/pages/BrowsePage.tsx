@@ -1,6 +1,6 @@
 import { Search, Star } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 type Book = {
   id: string;
@@ -10,6 +10,7 @@ type Book = {
   publishedYear: number | null;
   ratingAverage: number;
   ratingCount: number;
+  coverUrl: string | null;
 };
 type Genre = { id: string; name: string; slug: string };
 
@@ -19,11 +20,14 @@ export function BrowsePage() {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("newest");
   const [loading, setLoading] = useState(true);
+  const [params, setParams] = useSearchParams();
+  const genre = params.get("genre") ?? "";
+  const page = Number(params.get("page") ?? "1");
   useEffect(() => {
     void Promise.all([
-      fetch(`/api/v1/books?q=${encodeURIComponent(query)}&sort=${sort}`).then(
-        (response) => response.json() as Promise<{ items: Book[] }>
-      ),
+      fetch(
+        `/api/v1/books?q=${encodeURIComponent(query)}&sort=${sort}&genre=${encodeURIComponent(genre)}&page=${page}`
+      ).then((response) => response.json() as Promise<{ items: Book[] }>),
       fetch("/api/v1/genres").then(
         (response) => response.json() as Promise<Genre[]>
       ),
@@ -33,7 +37,7 @@ export function BrowsePage() {
         setGenres(genreResult);
       })
       .finally(() => setLoading(false));
-  }, [query, sort]);
+  }, [query, sort, genre, page]);
   return (
     <main className="browse-page section">
       <div className="browse-heading">
@@ -54,11 +58,26 @@ export function BrowsePage() {
       </div>
       <div className="browse-toolbar">
         <div className="genre-pills">
-          <button className="genre-pill active" type="button">
+          <button
+            className={!genre ? "genre-pill active" : "genre-pill"}
+            onClick={() => setParams({ q: query, sort, page: "1" })}
+            type="button"
+          >
             All books
           </button>
           {genres.map((genre) => (
-            <button className="genre-pill" key={genre.id} type="button">
+            <button
+              className={
+                genre.slug === params.get("genre")
+                  ? "genre-pill active"
+                  : "genre-pill"
+              }
+              key={genre.id}
+              onClick={() =>
+                setParams({ q: query, sort, genre: genre.slug, page: "1" })
+              }
+              type="button"
+            >
               {genre.name}
             </button>
           ))}
@@ -86,8 +105,11 @@ export function BrowsePage() {
               to={`/books/${book.slug}`}
             >
               <div className="catalog-cover">
+                {book.coverUrl ? (
+                  <img alt={`Cover of ${book.title}`} src={book.coverUrl} />
+                ) : null}
                 <span>{book.publishedYear ?? "New"}</span>
-                <strong>{book.title}</strong>
+                {!book.coverUrl && <strong>{book.title}</strong>}
               </div>
               <h2>{book.title}</h2>
               <p>{book.summary}</p>
@@ -100,6 +122,39 @@ export function BrowsePage() {
           ))}
         </div>
       )}
+      <div className="pagination">
+        <button
+          className="button button-secondary"
+          disabled={page <= 1}
+          onClick={() =>
+            setParams({
+              q: query,
+              sort,
+              ...(genre ? { genre } : {}),
+              page: String(page - 1),
+            })
+          }
+          type="button"
+        >
+          Previous
+        </button>
+        <span>Page {page}</span>
+        <button
+          className="button button-secondary"
+          disabled={books.length < 12}
+          onClick={() =>
+            setParams({
+              q: query,
+              sort,
+              ...(genre ? { genre } : {}),
+              page: String(page + 1),
+            })
+          }
+          type="button"
+        >
+          Next
+        </button>
+      </div>
     </main>
   );
 }

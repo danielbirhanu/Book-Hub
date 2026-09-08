@@ -19,6 +19,7 @@ type Book = {
     username: string;
     createdAt: string;
   }[];
+  coverUrl: string | null;
 };
 
 export function BookDetailPage() {
@@ -72,8 +73,14 @@ export function BookDetailPage() {
       </Link>
       <div className="book-detail-grid">
         <div className="detail-cover">
-          <BookOpen aria-hidden="true" size={48} />
-          <strong>{book.title}</strong>
+          {book.coverUrl ? (
+            <img alt={`Cover of ${book.title}`} src={book.coverUrl} />
+          ) : (
+            <>
+              <BookOpen aria-hidden="true" size={48} />
+              <strong>{book.title}</strong>
+            </>
+          )}
         </div>
         <div>
           <p className="eyebrow">
