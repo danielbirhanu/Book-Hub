@@ -1,10 +1,6 @@
 # Book Hub
 
-Book Hub is being rebuilt as a production-ready book discovery, reviewing, and reading-library application on Cloudflare.
-
-The approved direction and phased delivery plan live in [the Cloudflare rebuild implementation plan](docs/CLOUDFLARE_REBUILD_IMPLEMENTATION_PLAN.md).
-
-Recorded technical decisions live in [`docs/architecture`](docs/architecture).
+Book Hub is a book discovery, reviewing, and reading-library application on Cloudflare.
 
 ## New application
 
