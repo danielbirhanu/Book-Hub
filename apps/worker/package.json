@@ -9,7 +9,7 @@
     "db:seed:local": "wrangler d1 execute book-hub-local --local --file ../../packages/database/seed.sql",
     "deploy": "wrangler deploy",
     "dev": "npm run build --workspace @book-hub/web && wrangler dev",
-    "test": "vitest run",
+    "test": "vitest run --exclude '**/integration/**'",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "typecheck": "tsc -b --pretty false"
   },

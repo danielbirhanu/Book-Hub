@@ -6,5 +6,6 @@ export default defineConfig({
   test: {
     name: "worker-integration",
     include: ["src/integration/**/*.test.ts"],
+    setupFiles: ["src/integration/setup.ts"],
   },
 });
