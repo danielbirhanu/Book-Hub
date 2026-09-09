@@ -44,21 +44,9 @@ import {
   verifyPassword,
 } from "./auth";
 import { sendEmail } from "./email";
+import { rateLimited, RateLimiter } from "./rate-limiter";
 
 const app = new Hono<{ Bindings: Env }>();
-
-const rateBuckets = new Map<string, { count: number; resetAt: number }>();
-function rateLimited(request: Request, limit = 20) {
-  const key = request.headers.get("CF-Connecting-IP") ?? "local";
-  const now = Date.now();
-  const bucket = rateBuckets.get(key);
-  if (!bucket || bucket.resetAt <= now) {
-    rateBuckets.set(key, { count: 1, resetAt: now + 60_000 });
-    return false;
-  }
-  bucket.count += 1;
-  return bucket.count > limit;
-}
 
 app.use("*", secureHeaders());
 app.use("/api/*", async (context, next) => {
@@ -92,7 +80,7 @@ async function requireAdmin(context: { env: Env; req: { raw: Request } }) {
 }
 
 app.post("/api/v1/auth/register", async (context) => {
-  if (rateLimited(context.req.raw, 10))
+  if (await rateLimited(context.env, context.req.raw, "register", 10))
     return context.json(
       {
         error: {
@@ -157,7 +145,7 @@ app.post("/api/v1/auth/register", async (context) => {
 });
 
 app.post("/api/v1/auth/login", async (context) => {
-  if (rateLimited(context.req.raw, 15))
+  if (await rateLimited(context.env, context.req.raw, "login", 15))
     return context.json(
       {
         error: {
@@ -562,7 +550,7 @@ app.get("/api/v1/books/:idOrSlug", async (context) => {
 });
 
 app.post("/api/v1/books/:idOrSlug/reviews", async (context) => {
-  if (rateLimited(context.req.raw, 30))
+  if (await rateLimited(context.env, context.req.raw, "review", 30))
     return context.json(
       {
         error: {
@@ -710,3 +698,4 @@ app.onError((error, context) => {
 });
 
 export default app;
+export { RateLimiter };
