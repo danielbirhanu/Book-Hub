@@ -29,4 +29,28 @@
       "bucket_name": "book-hub-covers",
     },
   ],
+  "env": {
+    "preview": {
+      "name": "book-hub-preview",
+      "vars": { "ENVIRONMENT": "preview" },
+    },
+    "production": {
+      "name": "book-hub-production",
+      "vars": { "ENVIRONMENT": "production" },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "REPLACE_WITH_PRODUCTION_D1_NAME",
+          "database_id": "REPLACE_WITH_PRODUCTION_D1_ID",
+          "migrations_dir": "../../packages/database/migrations",
+        },
+      ],
+      "r2_buckets": [
+        {
+          "binding": "COVERS",
+          "bucket_name": "REPLACE_WITH_PRODUCTION_R2_BUCKET",
+        },
+      ],
+    },
+  },
 }

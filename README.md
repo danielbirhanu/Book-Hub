@@ -34,4 +34,4 @@ npm run check
 - `packages/database`: D1 schema, migrations, and repositories
 - `frontend` and `backend`: legacy reference implementation, retained temporarily
 
-No production Cloudflare resources or external provider accounts are required for the current foundation phase.
+See [docs/deployment.md](docs/deployment.md) for production Cloudflare setup, D1/R2 configuration, Brevo secrets, and deployment commands.
