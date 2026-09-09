@@ -78,10 +78,12 @@ app.get("/api/v1/health", (context) => {
   return context.json(response);
 });
 
-const sessionCookie = (token: string, expires: Date) =>
-  `book_hub_session=${token}; Path=/; HttpOnly; SameSite=Lax; Secure; Expires=${expires.toUTCString()}`;
+const sessionCookie = (token: string, expires: Date, secure: boolean) =>
+  `book_hub_session=${token}; Path=/; HttpOnly; SameSite=Lax;${secure ? " Secure;" : ""} Expires=${expires.toUTCString()}`;
 const clearSessionCookie =
-  "book_hub_session=; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=0";
+  "book_hub_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0";
+const isSecureRequest = (request: Request) =>
+  new URL(request.url).protocol === "https:";
 const coverUrl = (key: string | null) => (key ? `/api/v1/covers/${key}` : null);
 
 async function requireAdmin(context: { env: Env; req: { raw: Request } }) {
@@ -143,7 +145,14 @@ app.post("/api/v1/auth/register", async (context) => {
     subject: "Welcome to Book Hub",
     html: `<p>Welcome to Book Hub, ${user.username}.</p>`,
   }).catch((error) => console.error("Welcome email failed", error));
-  context.header("Set-Cookie", sessionCookie(session.token, session.expires));
+  context.header(
+    "Set-Cookie",
+    sessionCookie(
+      session.token,
+      session.expires,
+      isSecureRequest(context.req.raw)
+    )
+  );
   return context.json(publicUser(user), 201);
 });
 
@@ -181,7 +190,14 @@ app.post("/api/v1/auth/login", async (context) => {
       401
     );
   const session = await issueSession(context.env.DB, user.id);
-  context.header("Set-Cookie", sessionCookie(session.token, session.expires));
+  context.header(
+    "Set-Cookie",
+    sessionCookie(
+      session.token,
+      session.expires,
+      isSecureRequest(context.req.raw)
+    )
+  );
   return context.json(publicUser(user));
 });
 

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 import { AppLinkButton } from "../ui/Button";
+import { useAuth } from "../auth/AuthContext";
 
 const primaryLinks = [
   { label: "Discover", to: "/discover" },
@@ -13,6 +14,7 @@ const primaryLinks = [
 export function PublicLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   useEffect(() => setMenuOpen(false), [location.pathname]);
   useEffect(() => {
@@ -49,12 +51,28 @@ export function PublicLayout() {
           >
             <Search aria-hidden="true" size={20} />
           </button>
-          <Link className="text-link desktop-only" to="/login">
-            Sign in
-          </Link>
-          <AppLinkButton className="desktop-only" size="small" to="/register">
-            Join Book Hub
-          </AppLinkButton>
+          {user ? (
+            <button
+              className="text-link desktop-only"
+              onClick={() => void signOut()}
+              type="button"
+            >
+              Sign out
+            </button>
+          ) : (
+            <>
+              <Link className="text-link desktop-only" to="/login">
+                Sign in
+              </Link>
+              <AppLinkButton
+                className="desktop-only"
+                size="small"
+                to="/register"
+              >
+                Join Book Hub
+              </AppLinkButton>
+            </>
+          )}
           <button
             aria-controls="mobile-navigation"
             aria-expanded={menuOpen}
