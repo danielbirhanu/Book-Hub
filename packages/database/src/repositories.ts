@@ -167,6 +167,35 @@ export async function listGenres(database: D1Database) {
 export async function listAdminBooks(database: D1Database) {
   return db(database).select().from(books).orderBy(desc(books.updatedAt)).all();
 }
+export async function getAdminStats(database: D1Database) {
+  const [booksCount, reviewsCount, membersCount, draftsCount] =
+    await Promise.all([
+      db(database)
+        .select({ count: sql<number>`count(*)` })
+        .from(books)
+        .all(),
+      db(database)
+        .select({ count: sql<number>`count(*)` })
+        .from(reviews)
+        .where(eq(reviews.status, "published"))
+        .all(),
+      db(database)
+        .select({ count: sql<number>`count(*)` })
+        .from(users)
+        .all(),
+      db(database)
+        .select({ count: sql<number>`count(*)` })
+        .from(books)
+        .where(eq(books.status, "draft"))
+        .all(),
+    ]);
+  return {
+    books: Number(booksCount[0]?.count ?? 0),
+    reviews: Number(reviewsCount[0]?.count ?? 0),
+    members: Number(membersCount[0]?.count ?? 0),
+    drafts: Number(draftsCount[0]?.count ?? 0),
+  };
+}
 type AdminBookInput = {
   title: string;
   slug: string;

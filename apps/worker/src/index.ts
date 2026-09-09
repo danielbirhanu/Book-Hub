@@ -18,6 +18,7 @@ import {
   listBooks,
   listAllReviews,
   listAdminBooks,
+  getAdminStats,
   listGenres,
   listReadingStatuses,
   markEmailVerified,
@@ -220,6 +221,16 @@ app.get("/api/v1/admin/books", async (context) => {
       403
     );
   return context.json(await listAdminBooks(context.env.DB));
+});
+app.get("/api/v1/admin/stats", async (context) => {
+  if (!(await requireAdmin(context)))
+    return context.json(
+      {
+        error: { code: "FORBIDDEN", message: "Administrator access required." },
+      },
+      403
+    );
+  return context.json(await getAdminStats(context.env.DB));
 });
 app.post("/api/v1/admin/books", async (context) => {
   if (!(await requireAdmin(context)))

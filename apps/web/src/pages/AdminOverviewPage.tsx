@@ -8,20 +8,50 @@ import {
 
 import { AppButton } from "../ui/Button";
 import { StatusBadge } from "../ui/StatusBadge";
-
-const metrics = [
-  { change: "+12%", icon: Users, label: "Active members", value: "2,418" },
-  {
-    change: "+7%",
-    icon: MessageSquareText,
-    label: "Reviews this month",
-    value: "684",
-  },
-  { change: "+31", icon: BookPlus, label: "Books added", value: "156" },
-  { change: "-8%", icon: Flag, label: "Open reports", value: "14" },
-];
+import { useEffect, useState } from "react";
 
 export function AdminOverviewPage() {
+  const [stats, setStats] = useState({
+    books: 0,
+    reviews: 0,
+    members: 0,
+    drafts: 0,
+  });
+  useEffect(() => {
+    void fetch("/api/v1/admin/stats", { credentials: "include" })
+      .then(async (response) =>
+        response.ok ? ((await response.json()) as typeof stats) : null
+      )
+      .then((value) => {
+        if (value) setStats(value);
+      });
+  }, []);
+  const metrics = [
+    {
+      change: "Live",
+      icon: Users,
+      label: "Members",
+      value: stats.members.toLocaleString(),
+    },
+    {
+      change: "Published",
+      icon: MessageSquareText,
+      label: "Published reviews",
+      value: stats.reviews.toLocaleString(),
+    },
+    {
+      change: "Live",
+      icon: BookPlus,
+      label: "Catalog books",
+      value: stats.books.toLocaleString(),
+    },
+    {
+      change: "Needs review",
+      icon: Flag,
+      label: "Draft books",
+      value: stats.drafts.toLocaleString(),
+    },
+  ];
   return (
     <div>
       <div className="admin-page-heading">
