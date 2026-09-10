@@ -46,6 +46,18 @@ describe("API safeguards", () => {
     });
   });
 
+  it("rejects cross-origin state changes", async () => {
+    const response = await app.request(
+      "/api/v1/auth/logout",
+      { method: "POST", headers: { Origin: "https://attacker.example" } },
+      bindings
+    );
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "CROSS_ORIGIN" },
+    });
+  });
+
   it("checks authorization before processing cover data", async () => {
     const response = await app.request(
       "/api/v1/admin/books/book-1/cover",

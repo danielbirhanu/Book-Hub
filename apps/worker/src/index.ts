@@ -52,6 +52,30 @@ app.use("*", secureHeaders());
 app.use("/api/*", async (context, next) => {
   const id = crypto.randomUUID();
   context.header("X-Request-ID", id);
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(context.req.method)) {
+    const origin = context.req.header("Origin");
+    const requestUrl = new URL(context.req.url);
+    if (origin && origin !== requestUrl.origin)
+      return context.json(
+        {
+          error: {
+            code: "CROSS_ORIGIN",
+            message: "Cross-origin state changes are not allowed.",
+          },
+        },
+        403
+      );
+    if (context.req.header("Sec-Fetch-Site") === "cross-site")
+      return context.json(
+        {
+          error: {
+            code: "CROSS_ORIGIN",
+            message: "Cross-origin state changes are not allowed.",
+          },
+        },
+        403
+      );
+  }
   await next();
 });
 
