@@ -45,6 +45,7 @@ import {
 } from "./auth";
 import { sendEmail } from "./email";
 import { rateLimited, RateLimiter } from "./rate-limiter";
+import { imageUrl, uploadCover } from "./imagekit";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -96,7 +97,7 @@ const clearSessionCookie =
   "book_hub_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0";
 const isSecureRequest = (request: Request) =>
   new URL(request.url).protocol === "https:";
-const coverUrl = (key: string | null) => (key ? `/api/v1/covers/${key}` : null);
+const coverUrl = (env: Env, key: string | null) => imageUrl(env, key);
 
 async function requireAdmin(context: { env: Env; req: { raw: Request } }) {
   const user = await currentUser(context.env.DB, context.req.raw);
@@ -338,6 +339,17 @@ app.put("/api/v1/admin/books/:id/cover", async (context) => {
       { error: { code: "NOT_FOUND", message: "Book not found." } },
       404
     );
+  if (!context.env.IMAGEKIT_PRIVATE_KEY)
+    return context.json(
+      {
+        error: {
+          code: "MEDIA_UNAVAILABLE",
+          message:
+            "Cover uploads are unavailable because ImageKit is not configured.",
+        },
+      },
+      503
+    );
   const contentType = context.req.header("content-type") ?? "";
   if (!/^image\/(jpeg|png|webp)$/.test(contentType))
     return context.json(
@@ -360,30 +372,24 @@ app.put("/api/v1/admin/books/:id/cover", async (context) => {
       },
       413
     );
-  const key = `covers/${book.id}/${crypto.randomUUID()}.${contentType.split("/")[1]}`;
-  await context.env.COVERS.put(key, bytes, {
-    httpMetadata: {
-      contentType,
-      cacheControl: "public, max-age=31536000, immutable",
-    },
-  });
-  await updateBook(context.env.DB, book.id, { coverKey: key });
-  if (book.coverKey) await context.env.COVERS.delete(book.coverKey);
-  return context.json({ coverKey: key, url: `/api/v1/covers/${key}` });
-});
-
-app.get("/api/v1/covers/:key{.+}", async (context) => {
-  const object = await context.env.COVERS.get(context.req.param("key"));
-  if (!object)
+  const uploaded = await uploadCover(
+    context.env,
+    bytes,
+    contentType,
+    `${book.id}-${crypto.randomUUID()}.${contentType.split("/")[1]}`
+  );
+  if (!uploaded)
     return context.json(
-      { error: { code: "NOT_FOUND", message: "Cover not found." } },
-      404
+      {
+        error: {
+          code: "MEDIA_UNAVAILABLE",
+          message: "ImageKit is not configured.",
+        },
+      },
+      503
     );
-  const headers = new Headers();
-  object.writeHttpMetadata(headers);
-  headers.set("etag", object.httpEtag);
-  headers.set("cache-control", "public, max-age=31536000, immutable");
-  return new Response(object.body, { headers });
+  await updateBook(context.env.DB, book.id, { coverKey: uploaded.filePath });
+  return context.json({ coverKey: uploaded.filePath, url: uploaded.url });
 });
 
 app.patch("/api/v1/admin/reviews/:id", async (context) => {
@@ -555,7 +561,7 @@ app.get("/api/v1/books", async (context) => {
     ...result,
     items: result.items.map((book) => ({
       ...book,
-      coverUrl: coverUrl(book.coverKey),
+      coverUrl: coverUrl(context.env, book.coverKey),
     })),
     page,
     limit,
@@ -570,7 +576,10 @@ app.get("/api/v1/books/:idOrSlug", async (context) => {
       { error: { code: "NOT_FOUND", message: "Book not found" } },
       404
     );
-  return context.json({ ...book, coverUrl: coverUrl(book.coverKey) });
+  return context.json({
+    ...book,
+    coverUrl: coverUrl(context.env, book.coverKey),
+  });
 });
 
 app.post("/api/v1/books/:idOrSlug/reviews", async (context) => {

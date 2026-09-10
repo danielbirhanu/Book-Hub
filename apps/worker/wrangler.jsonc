@@ -23,12 +23,6 @@
       "migrations_dir": "../../packages/database/migrations",
     },
   ],
-  "r2_buckets": [
-    {
-      "binding": "COVERS",
-      "bucket_name": "book-hub-covers",
-    },
-  ],
   "durable_objects": {
     "bindings": [{ "name": "RATE_LIMITER", "class_name": "RateLimiter" }],
   },
@@ -47,12 +41,6 @@
           "database_name": "REPLACE_WITH_PRODUCTION_D1_NAME",
           "database_id": "REPLACE_WITH_PRODUCTION_D1_ID",
           "migrations_dir": "../../packages/database/migrations",
-        },
-      ],
-      "r2_buckets": [
-        {
-          "binding": "COVERS",
-          "bucket_name": "REPLACE_WITH_PRODUCTION_R2_BUCKET",
         },
       ],
     },
