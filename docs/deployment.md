@@ -11,7 +11,7 @@ npx wrangler login
 Create the production D1 database:
 
 ```bash
-npx wrangler d1 create book-hub-production
+npx wrangler d1 create book-hub
 ```
 
 ImageKit handles cover uploads and delivery; Cloudflare R2 is not required.

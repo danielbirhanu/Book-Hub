@@ -1,4 +1,13 @@
-import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  getTableColumns,
+  like,
+  or,
+  sql,
+} from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 
 import {
@@ -243,13 +252,30 @@ export async function listBooks(
     );
   const orderBy =
     options.sort === "rating"
-      ? [desc(books.ratingAverage), desc(books.ratingCount)]
+      ? [
+          desc(
+            sql`coalesce((select avg(rating) from reviews where book_id = books.id and status = 'published'), 0)`
+          ),
+          desc(
+            sql`(select count(*) from reviews where book_id = books.id and status = 'published')`
+          ),
+        ]
       : options.sort === "title"
         ? [asc(books.title)]
         : [desc(books.createdAt)];
   const [items, totalRows] = await Promise.all([
     db(database)
-      .select()
+      .select({
+        ...getTableColumns(books),
+        ratingAverage:
+          sql<number>`coalesce((select avg(rating) from reviews where book_id = books.id and status = 'published'), 0)`.mapWith(
+            Number
+          ),
+        ratingCount:
+          sql<number>`(select count(*) from reviews where book_id = books.id and status = 'published')`.mapWith(
+            Number
+          ),
+      })
       .from(books)
       .where(and(...conditions))
       .orderBy(...orderBy)
@@ -267,7 +293,17 @@ export async function listBooks(
 
 export async function getBook(database: D1Database, idOrSlug: string) {
   const [book] = await db(database)
-    .select()
+    .select({
+      ...getTableColumns(books),
+      ratingAverage:
+        sql<number>`coalesce((select avg(rating) from reviews where book_id = books.id and status = 'published'), 0)`.mapWith(
+          Number
+        ),
+      ratingCount:
+        sql<number>`(select count(*) from reviews where book_id = books.id and status = 'published')`.mapWith(
+          Number
+        ),
+    })
     .from(books)
     .where(or(eq(books.id, idOrSlug), eq(books.slug, idOrSlug)))
     .limit(1)
@@ -379,25 +415,25 @@ export async function updateReviewStatus(
   return review ?? null;
 }
 
-export async function recalculateBookRating(
-  database: D1Database,
-  bookId: string
-) {
-  await db(database)
-    .update(books)
-    .set({
-      ratingAverage: sql`coalesce((select avg(rating) from reviews where book_id = ${bookId} and status = 'published'), 0)`,
-      ratingCount: sql`(select count(*) from reviews where book_id = ${bookId} and status = 'published')`,
-    })
-    .where(eq(books.id, bookId));
-}
-
 export async function listReadingStatuses(
   database: D1Database,
   userId: string
 ) {
   return db(database)
-    .select({ status: readingStatuses.status, book: books })
+    .select({
+      status: readingStatuses.status,
+      book: {
+        ...getTableColumns(books),
+        ratingAverage:
+          sql<number>`coalesce((select avg(rating) from reviews where book_id = books.id and status = 'published'), 0)`.mapWith(
+            Number
+          ),
+        ratingCount:
+          sql<number>`(select count(*) from reviews where book_id = books.id and status = 'published')`.mapWith(
+            Number
+          ),
+      },
+    })
     .from(readingStatuses)
     .innerJoin(books, eq(readingStatuses.bookId, books.id))
     .where(eq(readingStatuses.userId, userId))

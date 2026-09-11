@@ -17,6 +17,12 @@ import { ResetPasswordPage } from "../pages/ResetPasswordPage";
 import { AdminReviewsPage } from "../pages/AdminReviewsPage";
 import { AdminBooksPage } from "../pages/AdminBooksPage";
 import { DiscoverPage } from "../pages/DiscoverPage";
+import {
+  InfoPage,
+  aboutContent,
+  guidelinesContent,
+  privacyContent,
+} from "../pages/InfoPage";
 
 export function App() {
   return (
@@ -27,6 +33,12 @@ export function App() {
         <Route path="browse" element={<BrowsePage />} />
         <Route path="books/:slug" element={<BookDetailPage />} />
         <Route path="my-books" element={<MyBooksPage />} />
+        <Route path="about" element={<InfoPage {...aboutContent} />} />
+        <Route
+          path="guidelines"
+          element={<InfoPage {...guidelinesContent} />}
+        />
+        <Route path="privacy" element={<InfoPage {...privacyContent} />} />
       </Route>
       <Route element={<AccountLayout />}>
         <Route path="login" element={<LoginPage />} />

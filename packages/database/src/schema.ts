@@ -96,8 +96,6 @@ export const books = sqliteTable(
     coverKey: text("cover_key"),
     publishedYear: integer("published_year"),
     isbn: text("isbn"),
-    ratingAverage: real("rating_average").notNull().default(0),
-    ratingCount: integer("rating_count").notNull().default(0),
     status: text("status", { enum: ["published", "draft", "archived"] })
       .notNull()
       .default("published"),
@@ -106,7 +104,6 @@ export const books = sqliteTable(
   (table) => [
     uniqueIndex("books_slug_idx").on(table.slug),
     index("books_published_idx").on(table.status, table.createdAt),
-    index("books_rating_idx").on(table.ratingAverage, table.ratingCount),
   ]
 );
 

@@ -22,7 +22,6 @@ import {
   listGenres,
   listReadingStatuses,
   markEmailVerified,
-  recalculateBookRating,
   setReadingStatus,
   updateReviewStatus,
   createBook,
@@ -422,7 +421,6 @@ app.patch("/api/v1/admin/reviews/:id", async (context) => {
       { error: { code: "NOT_FOUND", message: "Review not found." } },
       404
     );
-  await recalculateBookRating(context.env.DB, review.bookId);
   return context.json(review);
 });
 
@@ -627,7 +625,6 @@ app.post("/api/v1/books/:idOrSlug/reviews", async (context) => {
     createdAt: now,
     updatedAt: now,
   });
-  await recalculateBookRating(context.env.DB, book.id);
   return context.json(review, 201);
 });
 
@@ -647,7 +644,6 @@ app.delete("/api/v1/books/:idOrSlug/reviews", async (context) => {
       404
     );
   await deleteReview(context.env.DB, book.id, user.id);
-  await recalculateBookRating(context.env.DB, book.id);
   return context.json({ message: "Review deleted" });
 });
 

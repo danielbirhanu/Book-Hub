@@ -16,7 +16,10 @@ export function PublicLayout() {
   const location = useLocation();
   const { user, signOut } = useAuth();
 
-  useEffect(() => setMenuOpen(false), [location.pathname]);
+  useEffect(() => {
+    setMenuOpen(false);
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
   useEffect(() => {
     document.body.classList.toggle("menu-open", menuOpen);
     return () => document.body.classList.remove("menu-open");
@@ -52,13 +55,20 @@ export function PublicLayout() {
             <Search aria-hidden="true" size={20} />
           </button>
           {user ? (
-            <button
-              className="text-link desktop-only"
-              onClick={() => void signOut()}
-              type="button"
-            >
-              Sign out
-            </button>
+            <>
+              {user.isAdmin && (
+                <Link className="text-link desktop-only" to="/admin">
+                  Admin Dashboard
+                </Link>
+              )}
+              <button
+                className="text-link desktop-only"
+                onClick={() => void signOut()}
+                type="button"
+              >
+                Sign out
+              </button>
+            </>
           ) : (
             <>
               <Link className="text-link desktop-only" to="/login">
@@ -95,11 +105,19 @@ export function PublicLayout() {
               {link.label}
             </NavLink>
           ))}
-          <NavLink to="/login">Sign in</NavLink>
+          {user ? (
+            <>
+              {user.isAdmin && <NavLink to="/admin">Admin Dashboard</NavLink>}
+            </>
+          ) : (
+            <NavLink to="/login">Sign in</NavLink>
+          )}
         </nav>
-        <AppLinkButton size="large" to="/register">
-          Join Book Hub
-        </AppLinkButton>
+        {!user && (
+          <AppLinkButton size="large" to="/register">
+            Join Book Hub
+          </AppLinkButton>
+        )}
       </div>
       <div id="main-content">
         <Outlet />

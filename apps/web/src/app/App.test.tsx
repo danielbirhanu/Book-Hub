@@ -2,12 +2,15 @@ import { renderToString } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 
+import { AuthProvider } from "../auth/AuthContext";
 import { App } from "./App";
 
 function renderPath(path: string) {
   return renderToString(
     <MemoryRouter initialEntries={[path]}>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </MemoryRouter>
   );
 }
