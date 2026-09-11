@@ -33,13 +33,16 @@
       "vars": { "ENVIRONMENT": "preview" },
     },
     "production": {
-      "name": "book-hub-production",
+      "name": "book-hub",
       "vars": { "ENVIRONMENT": "production" },
+      "durable_objects": {
+        "bindings": [{ "name": "RATE_LIMITER", "class_name": "RateLimiter" }],
+      },
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "REPLACE_WITH_PRODUCTION_D1_NAME",
-          "database_id": "REPLACE_WITH_PRODUCTION_D1_ID",
+          "database_name": "book-hub-production",
+          "database_id": "6685bf6b-b26c-490d-b88c-d71b2e0a84f2",
           "migrations_dir": "../../packages/database/migrations",
         },
       ],

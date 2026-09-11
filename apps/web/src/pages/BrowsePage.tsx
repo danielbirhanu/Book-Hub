@@ -104,7 +104,9 @@ export function BrowsePage() {
               key={book.id}
               to={`/books/${book.slug}`}
             >
-              <div className="catalog-cover">
+              <div
+                className={`catalog-cover ${!book.coverUrl ? ["cover-rust", "cover-ink", "cover-green", "cover-gold"][Math.abs(book.id.split("").reduce((a, b) => a + b.charCodeAt(0), 0)) % 4] : ""}`}
+              >
                 {book.coverUrl ? (
                   <img alt={`Cover of ${book.title}`} src={book.coverUrl} />
                 ) : null}

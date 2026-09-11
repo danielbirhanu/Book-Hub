@@ -32,6 +32,6 @@ npm run check
 - `apps/worker`: Cloudflare Worker and Hono API
 - `packages/contracts`: shared runtime schemas and API types
 - `packages/database`: D1 schema, migrations, and repositories
-- `frontend` and `backend`: legacy reference implementation, retained temporarily
+- The legacy implementation has been removed; the active application lives under `apps/` and `packages/`.
 
-See [docs/deployment.md](docs/deployment.md) for production Cloudflare setup, D1/R2 configuration, Brevo secrets, and deployment commands.
+See [docs/deployment.md](docs/deployment.md) for production Cloudflare setup, D1 configuration, ImageKit, Brevo secrets, and deployment commands.

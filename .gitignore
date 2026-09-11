@@ -10,5 +10,6 @@ playwright-report/
 test-results/
 *.log
 .DS_Store
-docs/
+docs/*
+!docs/
 !docs/deployment.md
