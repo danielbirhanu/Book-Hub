@@ -1,22 +1,17 @@
-import {
-  ArrowUpRight,
-  BookPlus,
-  Flag,
-  MessageSquareText,
-  Users,
-} from "lucide-react";
+import { ArrowRight, BookOpen, Flag, ImageOff, UserX } from "lucide-react";
+import { Link } from "react-router-dom";
 
-import { AppButton } from "../ui/Button";
-import { StatusBadge } from "../ui/StatusBadge";
 import { useEffect, useState } from "react";
 
 export function AdminOverviewPage() {
   const [stats, setStats] = useState({
     books: 0,
-    reviews: 0,
-    members: 0,
+    missingCovers: 0,
+    unlinkedAuthors: 0,
     drafts: 0,
+    openReports: 0,
   });
+
   useEffect(() => {
     void fetch("/api/v1/admin/stats", { credentials: "include" })
       .then(async (response) =>
@@ -26,123 +21,148 @@ export function AdminOverviewPage() {
         if (value) setStats(value);
       });
   }, []);
-  const metrics = [
-    {
-      change: "Live",
-      icon: Users,
-      label: "Members",
-      value: stats.members.toLocaleString(),
-    },
-    {
-      change: "Published",
-      icon: MessageSquareText,
-      label: "Published reviews",
-      value: stats.reviews.toLocaleString(),
-    },
-    {
-      change: "Live",
-      icon: BookPlus,
-      label: "Catalog books",
-      value: stats.books.toLocaleString(),
-    },
-    {
-      change: "Needs review",
-      icon: Flag,
-      label: "Draft books",
-      value: stats.drafts.toLocaleString(),
-    },
-  ];
+
+  const today = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(new Date());
+
+  const totalActions =
+    stats.missingCovers + stats.unlinkedAuthors + stats.openReports;
+
   return (
     <div>
       <div className="admin-page-heading">
         <div>
-          <p className="eyebrow">Tuesday, September 1</p>
-          <h1>Community overview</h1>
-          <p>Catalog health, participation, and moderation at a glance.</p>
+          <p className="eyebrow">{today}</p>
+          <h1>Action Inbox</h1>
+          <p>
+            {totalActions === 0
+              ? "The catalog is healthy and moderation queues are clear."
+              : `There are ${totalActions} items requiring your attention.`}
+          </p>
         </div>
-        <AppButton icon={<BookPlus aria-hidden="true" size={18} />}>
-          Add book
-        </AppButton>
       </div>
-      <section className="metric-grid" aria-label="Community metrics">
-        {metrics.map((metric) => {
-          const Icon = metric.icon;
-          return (
-            <article className="metric" key={metric.label}>
-              <div className="metric-label">
-                <Icon aria-hidden="true" size={18} />
-                <span>{metric.label}</span>
+
+      <div className="metric-grid admin-overview-metrics">
+        <div className="metric">
+          <div className="metric-label">
+            <BookOpen aria-hidden="true" size={17} /> Total books
+          </div>
+          <strong>{stats.books}</strong>
+          <small>In the catalog</small>
+        </div>
+        <div className="metric metric-attention">
+          <div className="metric-label">
+            <ImageOff aria-hidden="true" size={17} /> Missing covers
+          </div>
+          <strong>{stats.missingCovers}</strong>
+          <small>Need artwork</small>
+        </div>
+        <div className="metric metric-attention">
+          <div className="metric-label">
+            <UserX aria-hidden="true" size={17} /> Unlinked authors
+          </div>
+          <strong>{stats.unlinkedAuthors}</strong>
+          <small>Need a connection</small>
+        </div>
+        <div className="metric metric-attention">
+          <div className="metric-label">
+            <Flag aria-hidden="true" size={17} /> Open reports
+          </div>
+          <strong>{stats.openReports}</strong>
+          <small>Awaiting review</small>
+        </div>
+      </div>
+
+      <div
+        className="admin-grid admin-overview-grid"
+        style={{ gridTemplateColumns: "1fr" }}
+      >
+        {stats.openReports > 0 && (
+          <section className="admin-panel" aria-labelledby="reports-title">
+            <div className="panel-heading">
+              <div>
+                <p className="eyebrow">Community Moderation</p>
+                <h2 id="reports-title">{stats.openReports} open reports</h2>
               </div>
-              <strong>{metric.value}</strong>
-              <small>{metric.change} from last month</small>
-            </article>
-          );
-        })}
-      </section>
-      <div className="admin-grid">
-        <section className="admin-panel" aria-labelledby="recent-reports-title">
-          <div className="panel-heading">
-            <div>
-              <p className="eyebrow">Moderation</p>
-              <h2 id="recent-reports-title">Recent reports</h2>
+              <Link
+                to="/admin/reports"
+                className="icon-button"
+                aria-label="Open reports"
+              >
+                <ArrowRight aria-hidden="true" size={19} />
+              </Link>
             </div>
-            <button className="icon-button" aria-label="Open reports">
-              <ArrowUpRight aria-hidden="true" size={19} />
-            </button>
-          </div>
-          <div className="report-list">
-            <article>
+            <p style={{ color: "var(--muted)", margin: "0 0 16px" }}>
+              Community members have flagged content for review.
+            </p>
+            <Link to="/admin/reports" className="button button-secondary">
+              Review reports
+            </Link>
+          </section>
+        )}
+
+        {stats.missingCovers > 0 && (
+          <section className="admin-panel" aria-labelledby="covers-title">
+            <div className="panel-heading">
               <div>
-                <strong>Review contains harassment</strong>
-                <p>Review on The Dispossessed · reported 18 min ago</p>
+                <p className="eyebrow">Catalog Integrity</p>
+                <h2 id="covers-title">
+                  {stats.missingCovers} books missing covers
+                </h2>
               </div>
-              <StatusBadge tone="critical">High priority</StatusBadge>
-            </article>
-            <article>
-              <div>
-                <strong>Possible promotional content</strong>
-                <p>Review on Sea of Tranquility · reported 2 hr ago</p>
-              </div>
-              <StatusBadge tone="warning">Needs review</StatusBadge>
-            </article>
-            <article>
-              <div>
-                <strong>Incorrect book metadata</strong>
-                <p>Catalog entry · reported yesterday</p>
-              </div>
-              <StatusBadge>Catalog</StatusBadge>
-            </article>
-          </div>
-        </section>
-        <section className="admin-panel" aria-labelledby="catalog-health-title">
-          <div className="panel-heading">
-            <div>
-              <p className="eyebrow">Catalog</p>
-              <h2 id="catalog-health-title">Data quality</h2>
+              <Link
+                to="/admin/books"
+                className="icon-button"
+                aria-label="Open catalog"
+              >
+                <ArrowRight aria-hidden="true" size={19} />
+              </Link>
             </div>
+            <p style={{ color: "var(--muted)", margin: "0 0 16px" }}>
+              Books without covers reduce discovery and engagement.
+            </p>
+            <Link to="/admin/books" className="button button-secondary">
+              Fix catalog
+            </Link>
+          </section>
+        )}
+
+        {stats.unlinkedAuthors > 0 && (
+          <section className="admin-panel" aria-labelledby="authors-title">
+            <div className="panel-heading">
+              <div>
+                <p className="eyebrow">Catalog Integrity</p>
+                <h2 id="authors-title">
+                  {stats.unlinkedAuthors} books without authors
+                </h2>
+              </div>
+              <Link
+                to="/admin/books"
+                className="icon-button"
+                aria-label="Open catalog"
+              >
+                <ArrowRight aria-hidden="true" size={19} />
+              </Link>
+            </div>
+            <p style={{ color: "var(--muted)", margin: "0 0 16px" }}>
+              Missing author links break author pages and recommendations.
+            </p>
+            <Link to="/admin/books" className="button button-secondary">
+              Link authors
+            </Link>
+          </section>
+        )}
+
+        {totalActions === 0 && (
+          <div className="admin-empty-state">
+            <p className="eyebrow">All caught up</p>
+            <h2>The Librarian's Desk is clear.</h2>
+            <p>There are no catalog or moderation tasks waiting for you.</p>
           </div>
-          <div className="quality-score">
-            <strong>94%</strong>
-            <span>records complete</span>
-          </div>
-          <div className="progress-track">
-            <span style={{ width: "94%" }} />
-          </div>
-          <ul className="quality-list">
-            <li>
-              <span>Missing covers</span>
-              <strong>18</strong>
-            </li>
-            <li>
-              <span>Unlinked authors</span>
-              <strong>7</strong>
-            </li>
-            <li>
-              <span>Possible duplicates</span>
-              <strong>4</strong>
-            </li>
-          </ul>
-        </section>
+        )}
       </div>
     </div>
   );

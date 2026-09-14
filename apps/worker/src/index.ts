@@ -18,6 +18,9 @@ import {
   listBooks,
   listAllReviews,
   listAdminBooks,
+  listAdminReports,
+  updateReportStatus,
+  listAdminMembers,
   getAdminStats,
   listGenres,
   listReadingStatuses,
@@ -238,7 +241,10 @@ app.get("/api/v1/admin/reviews", async (context) => {
       },
       403
     );
-  return context.json(await listAllReviews(context.env.DB));
+  
+  const limit = parseInt(context.req.query("limit") ?? "20");
+  const offset = parseInt(context.req.query("offset") ?? "0");
+  return context.json(await listAllReviews(context.env.DB, { limit, offset }));
 });
 app.get("/api/v1/admin/books", async (context) => {
   if (!(await requireAdmin(context)))
@@ -248,7 +254,11 @@ app.get("/api/v1/admin/books", async (context) => {
       },
       403
     );
-  return context.json(await listAdminBooks(context.env.DB));
+  
+  const limit = parseInt(context.req.query("limit") ?? "20");
+  const offset = parseInt(context.req.query("offset") ?? "0");
+  const q = context.req.query("q") ?? "";
+  return context.json(await listAdminBooks(context.env.DB, { limit, offset, q }));
 });
 app.get("/api/v1/admin/stats", async (context) => {
   if (!(await requireAdmin(context)))
@@ -422,6 +432,62 @@ app.patch("/api/v1/admin/reviews/:id", async (context) => {
       404
     );
   return context.json(review);
+});
+
+app.get("/api/v1/admin/members", async (context) => {
+  if (!(await requireAdmin(context)))
+    return context.json(
+      {
+        error: { code: "FORBIDDEN", message: "Administrator access required." },
+      },
+      403
+    );
+  const limit = parseInt(context.req.query("limit") ?? "20");
+  const offset = parseInt(context.req.query("offset") ?? "0");
+  const q = context.req.query("q") ?? "";
+  return context.json(await listAdminMembers(context.env.DB, { limit, offset, q }));
+});
+
+app.get("/api/v1/admin/reports", async (context) => {
+  if (!(await requireAdmin(context)))
+    return context.json(
+      {
+        error: { code: "FORBIDDEN", message: "Administrator access required." },
+      },
+      403
+    );
+  const limit = parseInt(context.req.query("limit") ?? "20");
+  const offset = parseInt(context.req.query("offset") ?? "0");
+  return context.json(await listAdminReports(context.env.DB, { limit, offset }));
+});
+
+app.patch("/api/v1/admin/reports/:id", async (context) => {
+  if (!(await requireAdmin(context)))
+    return context.json(
+      {
+        error: { code: "FORBIDDEN", message: "Administrator access required." },
+      },
+      403
+    );
+  const payload = (await context.req.json()) as { status?: string };
+  if (payload.status !== "open" && payload.status !== "resolved")
+    return context.json(
+      {
+        error: { code: "VALIDATION_ERROR", message: "Invalid report status." },
+      },
+      400
+    );
+  const report = await updateReportStatus(
+    context.env.DB,
+    context.req.param("id"),
+    payload.status
+  );
+  if (!report)
+    return context.json(
+      { error: { code: "NOT_FOUND", message: "Report not found." } },
+      404
+    );
+  return context.json(report);
 });
 
 app.post("/api/v1/auth/verify-email", async (context) => {
@@ -656,7 +722,16 @@ app.get("/api/v1/me/books", async (context) => {
       },
       401
     );
-  return context.json(await listReadingStatuses(context.env.DB, user.id));
+  const statuses = await listReadingStatuses(context.env.DB, user.id);
+  return context.json(
+    statuses.map((item) => ({
+      ...item,
+      book: {
+        ...item.book,
+        coverUrl: coverUrl(context.env, item.book.coverKey),
+      },
+    }))
+  );
 });
 
 app.put("/api/v1/me/books/:bookId", async (context) => {

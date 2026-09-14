@@ -86,4 +86,5 @@ export const adminBookSchema = z.object({
   publishedYear: z.coerce.number().int().min(0).max(3000).nullable().optional(),
   isbn: z.string().trim().max(32).nullable().optional(),
   status: z.enum(["published", "draft", "archived"]).default("draft"),
+  authorIds: z.array(z.string()).optional(),
 });

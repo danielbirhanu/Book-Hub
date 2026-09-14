@@ -187,3 +187,26 @@ export const readingStatuses = sqliteTable(
 
 export type Book = typeof books.$inferSelect;
 export type Genre = typeof genres.$inferSelect;
+
+export const reports = sqliteTable(
+  "reports",
+  {
+    id: text("id").primaryKey(),
+    reporterId: text("reporter_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    targetType: text("target_type", { enum: ["review", "book", "user"] }).notNull(),
+    targetId: text("target_id").notNull(),
+    reason: text("reason").notNull(),
+    status: text("status", { enum: ["open", "resolved"] })
+      .notNull()
+      .default("open"),
+    ...timestamps,
+  },
+  (table) => [
+    index("reports_status_idx").on(table.status, table.createdAt),
+    index("reports_target_idx").on(table.targetType, table.targetId),
+  ]
+);
+
+export type Report = typeof reports.$inferSelect;

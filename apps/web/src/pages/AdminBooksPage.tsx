@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Search, Edit2 } from "lucide-react";
 
 type Book = {
   id: string;
@@ -9,56 +10,98 @@ type Book = {
   publishedYear: number | null;
   coverKey: string | null;
 };
-const emptyBook = {
+const emptyBook: Pick<Book, 'title' | 'slug' | 'summary' | 'status'> & { publishedYear: string, authorIds: string } = {
   title: "",
   slug: "",
   summary: "",
   publishedYear: "",
   status: "draft",
+  authorIds: "",
 };
 
 export function AdminBooksPage() {
   const [books, setBooks] = useState<Book[]>([]);
   const [form, setForm] = useState(emptyBook);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState("");
+  
+  const limit = 20;
+
   useEffect(() => {
-    void fetch("/api/v1/admin/books", { credentials: "include" })
+    fetchBooks();
+  }, [page, query]);
+  
+  function fetchBooks() {
+    const offset = (page - 1) * limit;
+    void fetch(`/api/v1/admin/books?offset=${offset}&limit=${limit}&q=${encodeURIComponent(query)}`, { credentials: "include" })
       .then(async (response) =>
         response.ok ? ((await response.json()) as Book[]) : []
       )
       .then(setBooks);
-  }, []);
+  }
+
   function update(name: string, value: string) {
     setForm((current) => ({ ...current, [name]: value }));
   }
+
+  function editBook(book: Book) {
+    setEditingId(book.id);
+    setForm({
+      title: book.title,
+      slug: book.slug,
+      summary: book.summary,
+      publishedYear: book.publishedYear ? String(book.publishedYear) : "",
+      status: book.status,
+      authorIds: "", // We don't fetch author IDs yet
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm(emptyBook);
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
     setMessage("");
-    const response = await fetch("/api/v1/admin/books", {
-      method: "POST",
+    
+    const url = editingId ? `/api/v1/admin/books/${editingId}` : "/api/v1/admin/books";
+    const method = editingId ? "PATCH" : "POST";
+
+    const response = await fetch(url, {
+      method,
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
         publishedYear: form.publishedYear ? Number(form.publishedYear) : null,
+        authorIds: form.authorIds ? form.authorIds.split(",").map(id => id.trim()).filter(Boolean) : [],
       }),
     });
+    
     const payload = (await response.json()) as
       Book | { error?: { message?: string } };
     setBusy(false);
+    
     if (!response.ok) {
       setMessage(
         (payload as { error?: { message?: string } }).error?.message ??
-          "Unable to create the book."
+          "Unable to save the book."
       );
       return;
     }
-    setBooks((items) => [payload as Book, ...items]);
+    
     setForm(emptyBook);
-    setMessage("Book created.");
+    setEditingId(null);
+    setMessage(editingId ? "Book updated." : "Book created.");
+    fetchBooks();
   }
+  
   async function changeStatus(id: string, status: Book["status"]) {
     const response = await fetch(`/api/v1/admin/books/${id}`, {
       method: "PATCH",
@@ -71,6 +114,7 @@ export function AdminBooksPage() {
         items.map((book) => (book.id === id ? { ...book, status } : book))
       );
   }
+  
   async function uploadCover(bookId: string, file: File) {
     setMessage("");
     const response = await fetch(`/api/v1/admin/books/${bookId}/cover`, {
@@ -96,6 +140,7 @@ export function AdminBooksPage() {
     );
     setMessage("Cover uploaded.");
   }
+  
   return (
     <>
       <div className="admin-page-heading">
@@ -103,8 +148,7 @@ export function AdminBooksPage() {
           <p className="eyebrow">Catalog</p>
           <h1>Manage books</h1>
           <p>
-            Create drafts, publish completed records, and archive obsolete
-            entries.
+            Maintain catalog integrity, fix missing covers, and edit metadata.
           </p>
         </div>
       </div>
@@ -113,7 +157,12 @@ export function AdminBooksPage() {
           className="admin-panel catalog-form"
           onSubmit={(event) => void submit(event)}
         >
-          <h2>Add a book</h2>
+          <div className="panel-heading" style={{ marginBottom: "16px" }}>
+             <h2>{editingId ? "Edit book" : "Add a book"}</h2>
+             {editingId && (
+               <button type="button" onClick={cancelEdit} className="button button-secondary">Cancel</button>
+             )}
+          </div>
           <label>
             Title
             <input
@@ -151,6 +200,14 @@ export function AdminBooksPage() {
             />
           </label>
           <label>
+            Author IDs (comma-separated)
+            <input
+              value={form.authorIds}
+              placeholder="uuid-1, uuid-2"
+              onChange={(event) => update("authorIds", event.target.value)}
+            />
+          </label>
+          <label>
             Status
             <select
               value={form.status}
@@ -166,61 +223,93 @@ export function AdminBooksPage() {
             disabled={busy}
             type="submit"
           >
-            {busy ? "Creating..." : "Create book"}
+            {busy ? "Saving..." : (editingId ? "Save changes" : "Create book")}
           </button>
           {message && <p role="status">{message}</p>}
         </form>
+        
         <section className="admin-panel catalog-records">
-          <div className="panel-heading">
+          <div className="panel-heading" style={{ marginBottom: "16px" }}>
             <h2>Catalog records</h2>
-            <span>{books.length}</span>
+            <div className="admin-search" style={{ margin: 0 }}>
+               <Search size={16} />
+               <input 
+                  type="text" 
+                  placeholder="Search books..." 
+                  value={query}
+                  onChange={(e) => { setQuery(e.target.value); setPage(1); }}
+                  style={{ border: "none", background: "transparent", outline: "none", width: "100%" }}
+               />
+            </div>
           </div>
-          {books.map((book) => (
-            <article key={book.id}>
-              <div>
-                <span className="status-badge">{book.status}</span>
-                <h3>{book.title}</h3>
-                <small>
-                  /{book.slug}
-                  {book.publishedYear ? ` · ${book.publishedYear}` : ""}
-                </small>
-              </div>
-              <div className="moderation-actions">
-                <label className="button button-secondary cover-upload">
-                  Cover
-                  <input
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={(event) => {
-                      const file = event.target.files?.[0];
-                      if (file) void uploadCover(book.id, file);
-                    }}
-                    type="file"
-                  />
-                </label>
-                <button
-                  className="button button-secondary"
-                  onClick={() => void changeStatus(book.id, "draft")}
-                  type="button"
-                >
-                  Draft
-                </button>
-                <button
-                  className="button button-secondary"
-                  onClick={() => void changeStatus(book.id, "published")}
-                  type="button"
-                >
-                  Publish
-                </button>
-                <button
-                  className="button button-secondary"
-                  onClick={() => void changeStatus(book.id, "archived")}
-                  type="button"
-                >
-                  Archive
-                </button>
-              </div>
-            </article>
-          ))}
+          
+          <div className="catalog-list">
+             {books.length === 0 ? (
+               <p style={{ color: "var(--muted)" }}>No books found.</p>
+             ) : books.map((book) => (
+              <article key={book.id}>
+                <div>
+                  <span className="status-badge">{book.status}</span>
+                  <h3>{book.title}</h3>
+                  <small>
+                    /{book.slug}
+                    {book.publishedYear ? ` · ${book.publishedYear}` : ""}
+                  </small>
+                </div>
+                <div className="moderation-actions">
+                  <button className="button button-secondary" onClick={() => editBook(book)} type="button">
+                    <Edit2 size={14} /> Edit
+                  </button>
+                  <label className="button button-secondary cover-upload">
+                    {book.coverKey ? "Change Cover" : "Add Cover"}
+                    <input
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (file) void uploadCover(book.id, file);
+                      }}
+                      type="file"
+                    />
+                  </label>
+                  {book.status !== 'draft' && (
+                     <button
+                       className="button button-secondary"
+                       onClick={() => void changeStatus(book.id, "draft")}
+                       type="button"
+                     >
+                       Draft
+                     </button>
+                  )}
+                  {book.status !== 'published' && (
+                     <button
+                       className="button button-secondary"
+                       onClick={() => void changeStatus(book.id, "published")}
+                       type="button"
+                     >
+                       Publish
+                     </button>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+          
+          <div className="pagination-controls" style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
+             <button 
+                className="button button-secondary" 
+                disabled={page === 1}
+                onClick={() => setPage(p => p - 1)}
+             >
+                <ChevronLeft size={16} /> Previous
+             </button>
+             <button 
+                className="button button-secondary" 
+                disabled={books.length < limit}
+                onClick={() => setPage(p => p + 1)}
+             >
+                Next <ChevronRight size={16} />
+             </button>
+          </div>
         </section>
       </div>
     </>

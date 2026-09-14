@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 
 const adminLinks = [
   { icon: Gauge, label: "Overview", to: "/admin" },
@@ -22,29 +23,9 @@ const adminLinks = [
 
 export function AdminLayout() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<{
-    username: string;
-    isAdmin: boolean;
-  } | null>(null);
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    void fetch("/api/v1/auth/me", { credentials: "include" })
-      .then(async (response) =>
-        response.ok
-          ? ((await response.json()) as { username: string; isAdmin: boolean })
-          : null
-      )
-      .then(setUser)
-      .finally(() => setReady(true));
-  }, []);
-  async function signOut() {
-    await fetch("/api/v1/auth/logout", {
-      method: "POST",
-      credentials: "include",
-    });
-    void navigate("/login");
-  }
-  if (!ready)
+  const { user, loading, signOut } = useAuth();
+
+  if (loading)
     return (
       <main className="catalog-state">Checking administrator access...</main>
     );

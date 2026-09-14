@@ -7,15 +7,19 @@ import {
   like,
   or,
   sql,
+  isNull,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 
 import {
   accountTokens,
   bookGenres,
+  bookAuthors,
   books,
   genres,
+  authors,
   readingStatuses,
+  reports,
   reviews,
   sessions,
   users,
@@ -173,36 +177,44 @@ export interface BookListOptions {
 export async function listGenres(database: D1Database) {
   return db(database).select().from(genres).orderBy(asc(genres.name)).all();
 }
-export async function listAdminBooks(database: D1Database) {
-  return db(database).select().from(books).orderBy(desc(books.updatedAt)).all();
+export async function listAdminBooks(
+  database: D1Database,
+  options?: { limit: number; offset: number; q?: string }
+) {
+  let query = db(database).select().from(books).$dynamic();
+  if (options?.q?.trim()) {
+    query = query.where(like(books.title, `%${options.q.trim()}%`));
+  }
+  if (options) {
+    query = query.limit(options.limit).offset(options.offset);
+  }
+  return query.orderBy(desc(books.updatedAt)).all();
 }
 export async function getAdminStats(database: D1Database) {
-  const [booksCount, reviewsCount, membersCount, draftsCount] =
-    await Promise.all([
-      db(database)
-        .select({ count: sql<number>`count(*)` })
-        .from(books)
-        .all(),
-      db(database)
-        .select({ count: sql<number>`count(*)` })
-        .from(reviews)
-        .where(eq(reviews.status, "published"))
-        .all(),
-      db(database)
-        .select({ count: sql<number>`count(*)` })
-        .from(users)
-        .all(),
-      db(database)
-        .select({ count: sql<number>`count(*)` })
-        .from(books)
-        .where(eq(books.status, "draft"))
-        .all(),
-    ]);
+  const db_ = db(database);
+  const [
+    booksCount,
+    missingCoversCount,
+    unlinkedAuthorsCount,
+    draftsCount,
+    openReportsCount,
+  ] = await Promise.all([
+    db_.select({ count: sql<number>`count(*)` }).from(books).all(),
+    db_.select({ count: sql<number>`count(*)` }).from(books).where(isNull(books.coverKey)).all(),
+    db_.select({ count: sql<number>`count(${books.id})` })
+       .from(books)
+       .leftJoin(bookAuthors, eq(books.id, bookAuthors.bookId))
+       .where(isNull(bookAuthors.authorId)).all(),
+    db_.select({ count: sql<number>`count(*)` }).from(books).where(eq(books.status, "draft")).all(),
+    db_.select({ count: sql<number>`count(*)` }).from(reports).where(eq(reports.status, "open")).all(),
+  ]);
+
   return {
     books: Number(booksCount[0]?.count ?? 0),
-    reviews: Number(reviewsCount[0]?.count ?? 0),
-    members: Number(membersCount[0]?.count ?? 0),
+    missingCovers: Number(missingCoversCount[0]?.count ?? 0),
+    unlinkedAuthors: Number(unlinkedAuthorsCount[0]?.count ?? 0),
     drafts: Number(draftsCount[0]?.count ?? 0),
+    openReports: Number(openReportsCount[0]?.count ?? 0),
   };
 }
 type AdminBookInput = {
@@ -213,24 +225,51 @@ type AdminBookInput = {
   isbn?: string | null | undefined;
   status: "published" | "draft" | "archived";
   coverKey?: string | null | undefined;
+  authorIds?: string[];
 };
+
 export async function createBook(
   database: D1Database,
   input: AdminBookInput & { id: string; createdAt: string; updatedAt: string }
 ) {
-  const [book] = await db(database).insert(books).values(input).returning();
+  const { authorIds, ...bookData } = input;
+  const [book] = await db(database).insert(books).values(bookData).returning();
+  
+  if (authorIds && authorIds.length > 0) {
+    const authorRecords = authorIds.map(authorId => ({ bookId: book.id, authorId }));
+    await db(database).insert(bookAuthors).values(authorRecords);
+  }
+  
   return book;
 }
+
 export async function updateBook(
   database: D1Database,
   id: string,
-  input: Record<string, unknown>
+  input: Partial<AdminBookInput>
 ) {
-  const [book] = await db(database)
-    .update(books)
-    .set({ ...input, updatedAt: new Date().toISOString() })
-    .where(eq(books.id, id))
-    .returning();
+  const { authorIds, ...bookData } = input;
+  let book = null;
+  if (Object.keys(bookData).length > 0) {
+    const records = await db(database)
+      .update(books)
+      .set({ ...bookData, updatedAt: new Date().toISOString() })
+      .where(eq(books.id, id))
+      .returning();
+    book = records[0];
+  } else {
+    const records = await db(database).select().from(books).where(eq(books.id, id));
+    book = records[0];
+  }
+  
+  if (authorIds !== undefined) {
+    await db(database).delete(bookAuthors).where(eq(bookAuthors.bookId, id));
+    if (authorIds.length > 0) {
+      const authorRecords = authorIds.map(authorId => ({ bookId: id, authorId }));
+      await db(database).insert(bookAuthors).values(authorRecords);
+    }
+  }
+  
   return book ?? null;
 }
 
@@ -248,7 +287,7 @@ export async function listBooks(
   }
   if (options.genre)
     conditions.push(
-      sql`${books.id} in (select book_id from book_genres where genre_id = ${options.genre})`
+      sql`${books.id} in (select book_genres.book_id from book_genres inner join genres on book_genres.genre_id = genres.id where genres.slug = ${options.genre})`
     );
   const orderBy =
     options.sort === "rating"
@@ -309,12 +348,21 @@ export async function getBook(database: D1Database, idOrSlug: string) {
     .limit(1)
     .all();
   if (!book) return null;
+  
   const bookGenreRows = await db(database)
     .select({ id: genres.id, name: genres.name, slug: genres.slug })
     .from(bookGenres)
     .innerJoin(genres, eq(bookGenres.genreId, genres.id))
     .where(eq(bookGenres.bookId, book.id))
     .all();
+    
+  const bookAuthorRows = await db(database)
+    .select({ id: authors.id, name: authors.name, slug: authors.slug })
+    .from(bookAuthors)
+    .innerJoin(authors, eq(bookAuthors.authorId, authors.id))
+    .where(eq(bookAuthors.bookId, book.id))
+    .all();
+
   const reviewRows = await db(database)
     .select({
       id: reviews.id,
@@ -330,7 +378,8 @@ export async function getBook(database: D1Database, idOrSlug: string) {
     .where(and(eq(reviews.bookId, book.id), eq(reviews.status, "published")))
     .orderBy(desc(reviews.createdAt))
     .all();
-  return { ...book, genres: bookGenreRows, reviews: reviewRows };
+    
+  return { ...book, genres: bookGenreRows, authors: bookAuthorRows, reviews: reviewRows };
 }
 
 export async function upsertReview(
@@ -382,8 +431,11 @@ export async function deleteReview(
     .where(and(eq(reviews.bookId, bookId), eq(reviews.userId, userId)));
 }
 
-export async function listAllReviews(database: D1Database) {
-  return db(database)
+export async function listAllReviews(
+  database: D1Database,
+  options?: { limit: number; offset: number }
+) {
+  let query = db(database)
     .select({
       id: reviews.id,
       bookId: reviews.bookId,
@@ -398,8 +450,12 @@ export async function listAllReviews(database: D1Database) {
     .from(reviews)
     .innerJoin(books, eq(reviews.bookId, books.id))
     .innerJoin(users, eq(reviews.userId, users.id))
-    .orderBy(desc(reviews.createdAt))
-    .all();
+    .$dynamic();
+    
+  if (options) {
+    query = query.limit(options.limit).offset(options.offset);
+  }
+  return query.orderBy(desc(reviews.createdAt)).all();
 }
 
 export async function updateReviewStatus(
@@ -458,4 +514,42 @@ export async function setReadingStatus(
       target: [readingStatuses.userId, readingStatuses.bookId],
       set: { status: input.status, updatedAt: input.updatedAt },
     });
+}
+
+export async function listAdminMembers(
+  database: D1Database,
+  options?: { limit: number; offset: number; q?: string }
+) {
+  let query = db(database).select().from(users).$dynamic();
+  if (options?.q?.trim()) {
+    query = query.where(like(users.email, `%${options.q.trim()}%`));
+  }
+  if (options) {
+    query = query.limit(options.limit).offset(options.offset);
+  }
+  return query.orderBy(desc(users.createdAt)).all();
+}
+
+export async function listAdminReports(
+  database: D1Database,
+  options?: { limit: number; offset: number }
+) {
+  let query = db(database).select().from(reports).$dynamic();
+  if (options) {
+    query = query.limit(options.limit).offset(options.offset);
+  }
+  return query.orderBy(asc(reports.status), desc(reports.createdAt)).all();
+}
+
+export async function updateReportStatus(
+  database: D1Database,
+  id: string,
+  status: "open" | "resolved"
+) {
+  const [report] = await db(database)
+    .update(reports)
+    .set({ status, updatedAt: new Date().toISOString() })
+    .where(eq(reports.id, id))
+    .returning();
+  return report ?? null;
 }

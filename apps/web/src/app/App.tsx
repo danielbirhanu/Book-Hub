@@ -14,8 +14,9 @@ import { PlaceholderPage } from "../pages/PlaceholderPage";
 import { MyBooksPage } from "../pages/MyBooksPage";
 import { ForgotPasswordPage } from "../pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "../pages/ResetPasswordPage";
-import { AdminReviewsPage } from "../pages/AdminReviewsPage";
+import { AdminModerationPage } from "../pages/AdminModerationPage";
 import { AdminBooksPage } from "../pages/AdminBooksPage";
+import { AdminMembersPage } from "../pages/AdminMembersPage";
 import { DiscoverPage } from "../pages/DiscoverPage";
 import {
   InfoPage,
@@ -49,15 +50,9 @@ export function App() {
       <Route path="admin" element={<AdminLayout />}>
         <Route index element={<AdminOverviewPage />} />
         <Route path="books" element={<AdminBooksPage />} />
-        <Route path="reviews" element={<AdminReviewsPage />} />
-        <Route
-          path="reports"
-          element={<PlaceholderPage title="Reports" compact />}
-        />
-        <Route
-          path="members"
-          element={<PlaceholderPage title="Members" compact />}
-        />
+        <Route path="reviews" element={<AdminModerationPage />} />
+        <Route path="reports" element={<AdminModerationPage />} />
+        <Route path="members" element={<AdminMembersPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

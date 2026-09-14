@@ -1,32 +1,29 @@
 import { ArrowRight, BookMarked, Quote, Star } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import libraryShelves from "../assets/library-shelves.webp";
 import { AppLinkButton } from "../ui/Button";
 
-const featuredBooks = [
-  {
-    author: "Ursula K. Le Guin",
-    rating: "4.4",
-    title: "The Left Hand of Darkness",
-    tone: "rust",
-  },
-  {
-    author: "Kazuo Ishiguro",
-    rating: "4.2",
-    title: "The Remains of the Day",
-    tone: "ink",
-  },
-  { author: "Toni Morrison", rating: "4.5", title: "Beloved", tone: "green" },
-  {
-    author: "Umberto Eco",
-    rating: "4.3",
-    title: "The Name of the Rose",
-    tone: "gold",
-  },
-];
+type Book = {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string;
+  publishedYear: number | null;
+  ratingAverage: number;
+  ratingCount: number;
+  coverUrl: string | null;
+};
 
 export function HomePage() {
+  const [featuredBooks, setFeaturedBooks] = useState<Book[]>([]);
+
+  useEffect(() => {
+    void fetch("/api/v1/books?limit=4&sort=rating")
+      .then((response) => response.json() as Promise<{ items: Book[] }>)
+      .then((result) => setFeaturedBooks(result.items));
+  }, []);
   return (
     <main>
       <section className="hero" aria-labelledby="hero-title">
@@ -67,19 +64,27 @@ export function HomePage() {
         </div>
         <div className="book-grid">
           {featuredBooks.map((book) => (
-            <article className="book-card" key={book.title}>
-              <div className={`book-cover cover-${book.tone}`}>
-                <span>{book.author}</span>
-                <strong>{book.title}</strong>
+            <Link className="book-card" key={book.id} to={`/books/${book.slug}`}>
+              <div
+                className={`book-cover ${!book.coverUrl ? ["cover-rust", "cover-ink", "cover-green", "cover-gold"][Math.abs(book.id.split("").reduce((a, b) => a + b.charCodeAt(0), 0)) % 4] : ""}`}
+              >
+                {book.coverUrl ? (
+                  <img alt={`Cover of ${book.title}`} src={book.coverUrl} />
+                ) : (
+                  <>
+                    <span>{book.publishedYear ?? "New"}</span>
+                    <strong>{book.title}</strong>
+                  </>
+                )}
               </div>
               <h3>{book.title}</h3>
-              <p>{book.author}</p>
+              <p>{book.publishedYear ?? "Book Hub"}</p>
               <div className="rating">
                 <Star aria-hidden="true" fill="currentColor" size={15} />
-                <span>{book.rating}</span>
+                <span>{book.ratingAverage.toFixed(1)}</span>
                 <small>community rating</small>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       </section>
